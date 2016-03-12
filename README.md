@@ -1,5 +1,5 @@
 # MatlabPNM
-Pore Network Modeling immiscible two phase code written in Matlab.
+A Matlab-based package for performing Pore Network Modeling of porous media.
 
 #What is MatlabPNM?
 
