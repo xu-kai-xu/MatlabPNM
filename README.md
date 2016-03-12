@@ -7,6 +7,9 @@ MatlabPNM is an open-source framework for performing pore network modeling simul
 
 MatlabPNM is written in Matlab. My goal is to help other scientists and engineers harness the power and intuitive pore network modeling approach, so if you are interested in this package, please contact me through Github, or email me directly.
 
-#Contact Info:
+#Usage
 
+To run the codes, start with the InputData.m file after specifying the required quantities. The Network will be constructed by NetworkConstruction.m file and then the primary drainage and secondary imbibition will be run by PrimaryDrainage.m and SecondaryImbibition.m, respectively, which are all in SourceCode folder.
+
+#Contact Info:
 For more Informations don't hesitate to contact me through: mh.golestan [at] yahoo [dot] com 
