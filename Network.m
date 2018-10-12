@@ -55,8 +55,9 @@ classdef Network
                                     node_2_values(2),... % pore volume
                                     node_2_values(3),... % pore radius  
                                     node_2_values(4),... % pore shape factor 
-                                    node_2_values(5)); % pore clay volume                        
+                                    node_2_values(5)); % pore clay volume               
             end        
+            
             for i = 1:obj.numberOfLinks
                link_1_values = str2num(fgetl(link_1_fileID));
                link_2_values = str2num(fgetl(link_2_fileID));
@@ -75,9 +76,10 @@ classdef Network
             
             %closing the files
             fclose(link_1_fileID); fclose(link_2_fileID);
-            fclose(node_1_fileID); fclose(node_2_fileID);           
+            fclose(node_1_fileID); fclose(node_2_fileID);    
+            
         end
-        %% 
+
         %% Porosity calculation
             function Porosity = calculatePorosity(obj)
             nodesVolume = 0;

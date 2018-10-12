@@ -10,7 +10,6 @@ classdef Link < Element
         pore1Length
         pore2Length
         linkLength  % only the length of the link
-        area
         
     end
     
@@ -40,6 +39,7 @@ classdef Link < Element
             obj.volume = volume;
             obj.clayVolume = clayVolume;
             water_viscosity = 0.001;
+            
             
             %Cheking inlet or outlet status of the link
             obj.isInlet  = false;
@@ -82,7 +82,7 @@ classdef Link < Element
                 obj.conductance = 0.5 * obj.area^2 * obj.shapeFactor /water_viscosity;
             end
         end
-
+        
     end
 end
 
