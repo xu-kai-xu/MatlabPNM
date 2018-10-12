@@ -5,14 +5,14 @@ classdef Network
     properties
         Nodes
         Links
-        xDimention
-        yDimention
-        zDimention
+        xDimension
+        yDimension
+        zDimension
         numberOfLinks
         numberOfNodes
         
         
-        porosity
+        
         absolutePermeability
     end
     
@@ -34,9 +34,9 @@ classdef Network
             obj.numberOfNodes = temp(1);
             
             % Network dimention
-            obj.xDimention = temp(2);
-            obj.yDimention = temp(3);
-            obj.zDimention = temp(4);
+            obj.xDimension = temp(2);
+            obj.yDimension = temp(3);
+            obj.zDimension = temp(4);
             
             % Initializing Nodes and Links parameters
             obj.Nodes = cell(obj.numberOfNodes,1);
@@ -75,22 +75,22 @@ classdef Network
             
             %closing the files
             fclose(link_1_fileID); fclose(link_2_fileID);
-            fclose(node_1_fileID); fclose(node_2_fileID);
-            
-            %% Porosity calculation
-            nodesVolume = 0;
-            linksVolume = 0;
-            for i = 1:obj.numberOfNodes
-                nodesVolume = nodesVolume + (obj.Nodes{i}.volume) ;
-            end
-            for i = 1:obj.numberOfLinks
-                linksVolume = linksVolume + (obj.Links{i}.volume) ;
-            end
-            obj.porosity = (linksVolume + nodesVolume) / (obj.xDimention * obj.yDimention * obj.zDimention);
-           
+            fclose(node_1_fileID); fclose(node_2_fileID);           
         end
         %% 
-        
+        %% Porosity calculation
+            function Porosity = calculatePorosity(obj)
+            nodesVolume = 0;
+            linksVolume = 0;
+            for ii = 1:obj.numberOfNodes
+                nodesVolume = nodesVolume + (obj.Nodes{ii}.volume) ;
+            end
+            for ii = 1:obj.numberOfLinks
+                linksVolume = linksVolume + (obj.Links{ii}.volume) ;
+            end
+            Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);            
+            end
+            %
         function calculateFlowRate(obj, inletPressure, outletPressure)
             A = zeros(obj.numberOfNodes, obj.numberOfNodes);
             C = zeros(obj.numberOfNodes, 1);
@@ -126,7 +126,7 @@ classdef Network
             if vtkFileID == -1
                 error('Cannot open file for writing.');
             end
-            title = "output";
+            title = 'output';
             fprintf ( vtkFileID, '# vtk DataFile Version 2.0\n' );
             fprintf ( vtkFileID, '%s\n', title );
             fprintf ( vtkFileID, 'ASCII\n' );
