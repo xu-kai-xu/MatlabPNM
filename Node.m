@@ -9,6 +9,7 @@ classdef Node < Element
         connectionNumber
         connectedNodes
         connectedLinks
+        area
     end
     
     methods
@@ -45,7 +46,7 @@ classdef Node < Element
             obj.radius = radius;
             obj.shapeFactor = shapeFactor;
             obj.clayVolume = clayVolume;
-            
+            water_viscosity = 0.001;
             
             % Geometry and conductance specification of the elements is
             % based of : Patzek, T. W., & Silin, D. B. (2001). Shape factor and hydraulic conductance in noncircular capillaries: I. One-phase creeping flow. Journal of Colloid and Interface Science. https://doi.org/10.1006/jcis.2000.7413
@@ -59,25 +60,27 @@ classdef Node < Element
                 obj.halfAngle1 = -0.5 * obj.halfAngle2 + 0.5 * asin((tan(obj.halfAngle2) + 4 * obj.shapeFactor) * sin(obj.halfAngle2) / (tan(obj.halfAngle2) - 4 * obj.shapeFactor));
                 obj.halfAngle3 = pi / 2 - obj.halfAngle1 - obj.halfAngle2;
                 obj.halfAngle4 = nan;
+                obj.area = obj.radius^2/4/obj.shapeFactor;                
+                obj.conductance = 3 * obj.area^2 * obj.shapeFactor /water_viscosity / 5;
             elseif obj.shapeFactor > sqrt(3) / 36 && obj.shapeFactor < 1 / 16
                 obj.geometry = 'Square';
                 obj.halfAngle1 = pi / 4;
                 obj.halfAngle2 = pi / 4;
                 obj.halfAngle3 = pi / 4;
                 obj.halfAngle4 = pi / 4;
+                obj.area = 4*obj.radius^2;                
+                obj.conductance = 0.5623 * obj.area^2 * obj.shapeFactor /water_viscosity;
             elseif obj.shapeFactor > 1 / 16
                 obj.geometry = 'circle';
                 obj.halfAngle1 = nan;
                 obj.halfAngle2 = nan;
                 obj.halfAngle3 = nan;
                 obj.halfAngle4 = nan;
+                obj.area = pi*obj.radius^2;                
+                obj.conductance = 0.5 * obj.area^2 * obj.shapeFactor /water_viscosity;
             end
         end
-        function outputArg = method1(obj,inputArg)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
-        end
+
     end
 end
 
