@@ -5,14 +5,14 @@ classdef Network
     properties
         Nodes
         Links
-        xDimention
-        yDimention
-        zDimention
+        xDimension
+        yDimension
+        zDimension
         numberOfLinks
         numberOfNodes
         
         
-        porosity
+        
         absolutePermeability
     end
     
@@ -34,9 +34,9 @@ classdef Network
             obj.numberOfNodes = temp(1);
             
             % Network dimention
-            obj.xDimention = temp(2);
-            obj.yDimention = temp(3);
-            obj.zDimention = temp(4);
+            obj.xDimension = temp(2);
+            obj.yDimension = temp(3);
+            obj.zDimension = temp(4);
             
             % Initializing Nodes and Links parameters
             obj.Nodes = cell(obj.numberOfNodes,1);
@@ -55,8 +55,9 @@ classdef Network
                                     node_2_values(2),... % pore volume
                                     node_2_values(3),... % pore radius  
                                     node_2_values(4),... % pore shape factor 
-                                    node_2_values(5)); % pore clay volume                        
+                                    node_2_values(5)); % pore clay volume               
             end        
+            
             for i = 1:obj.numberOfLinks
                link_1_values = str2num(fgetl(link_1_fileID));
                link_2_values = str2num(fgetl(link_2_fileID));
@@ -75,22 +76,70 @@ classdef Network
             
             %closing the files
             fclose(link_1_fileID); fclose(link_2_fileID);
-            fclose(node_1_fileID); fclose(node_2_fileID);
+            fclose(node_1_fileID); fclose(node_2_fileID);    
             
-            %% Porosity calculation
+        end
+
+        %% Porosity calculation
+            function Porosity = calculatePorosity(obj)
             nodesVolume = 0;
             linksVolume = 0;
-            for i = 1:obj.numberOfNodes
-                nodesVolume = nodesVolume + (obj.Nodes{i}.volume) ;
+            for ii = 1:obj.numberOfNodes
+                nodesVolume = nodesVolume + (obj.Nodes{ii}.volume) ;
             end
-            for i = 1:obj.numberOfLinks
-                linksVolume = linksVolume + (obj.Links{i}.volume) ;
+            for ii = 1:obj.numberOfLinks
+                linksVolume = linksVolume + (obj.Links{ii}.volume) ;
             end
-            obj.porosity = (linksVolume + nodesVolume) / (obj.xDimention * obj.yDimention * obj.zDimention);
-           
-        end
-        %% 
+            Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);            
+            end
+            
+            
+        %% Pressure distribution calculation
         
+        function nodesPressure = pressureDistribution (obj, inletPressure, outletPressure)
+            % pressureDistribution Summary of this method goes here
+            %   Detailed explanation goes here
+            Factor = zeros(obj.numberOfNodes, obj.numberOfNodes);
+            B = zeros(obj.numberOfNodes, 1);            
+         
+            for ii = 1:obj.numberOfNodes
+                for jj = 1:obj.numberOfNodes
+                    if obj.Nodes{ii}.isInlet
+                        Factor(ii,jj) = obj.Nodes{ii}.conductance;
+                        B(ii) = Factor(ii,jj)*inletPressure;
+                    elseif obj.Nodes{ii}.isOutlet
+                        Factor(ii,jj) = obj.Nodes{ii}.conductance;  
+                        B(ii) = Factor(ii,jj)*outletPressure;
+                    else
+                        B(ii) = 0;
+                    end
+                    C=0;
+                    for k = 1:obj.Nodes{ii}.connectionNumber
+                        l = obj.Nodes{ii}.connectedLinks(k);
+                        if ii ~= jj
+                            if obj.Nodes{jj}.index == obj.Nodes{ii}.connectedNodes(k)                                
+                                Factor(ii,jj) = (obj.Links{l}.linkLength/obj.Links{l}.conductance)+...
+                                    0.5*(obj.Links{l}.pore1Length/obj.Nodes{ii}.conductance +...       
+                                    obj.Links{l}.pore1Length/obj.Nodes{jj}.conductance); 
+                            end
+                        else
+                            Lt = obj.Links{l}.linkLength;
+                            Ct = obj.Links{l}.conductance;
+                            Lpi = obj.Links{l}.pore1Length;
+                            Cpi = obj.Nodes{ii}.conductance;                            
+                            Lpj = obj.Links{l}.pore2Length;
+                            Cpj = obj.Nodes{jj}.conductance;
+                            C=C+(Lt/Ct)+ 0.5*(Lpi /Cpi + Lpj /Cpj);
+                        end
+                    end
+                    
+                    Factor(ii,jj)=Factor(ii,jj)+C;
+                    end                
+            end
+            nodesPressure = B\Factor;
+            end
+            
+            %
         function calculateFlowRate(obj, inletPressure, outletPressure)
             A = zeros(obj.numberOfNodes, obj.numberOfNodes);
             C = zeros(obj.numberOfNodes, 1);
@@ -126,7 +175,7 @@ classdef Network
             if vtkFileID == -1
                 error('Cannot open file for writing.');
             end
-            title = "output";
+            title = 'output';
             fprintf ( vtkFileID, '# vtk DataFile Version 2.0\n' );
             fprintf ( vtkFileID, '%s\n', title );
             fprintf ( vtkFileID, 'ASCII\n' );
