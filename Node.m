@@ -9,7 +9,7 @@ classdef Node < Element
         connectionNumber
         connectedNodes
         connectedLinks
-        area
+
     end
     
     methods
@@ -48,6 +48,7 @@ classdef Node < Element
             obj.clayVolume = clayVolume;
             water_viscosity = 0.001;
             
+            
             % Geometry and conductance specification of the elements is
             % based of : Patzek, T. W., & Silin, D. B. (2001). Shape factor and hydraulic conductance in noncircular capillaries: I. One-phase creeping flow. Journal of Colloid and Interface Science. https://doi.org/10.1006/jcis.2000.7413
             % For ducts with square cross-sections, all four half-angles are equal to /4? and G = 1/16 . Circular ducts have no corners and G =1/ 4? . For simplicity, all ducts with shape factors between those of equilateral triangle and square can be mapped onto squares, and those with shape factors above 1/16 onto circles.
@@ -80,7 +81,7 @@ classdef Node < Element
                 obj.conductance = 0.5 * obj.area^2 * obj.shapeFactor /water_viscosity;
             end
         end
-
+        
     end
 end
 
