@@ -25,6 +25,11 @@ classdef Element
         oil_area
         water_area
         
+        %It's better to define the phase conductances and the area of each
+        %fluid as a structure for this each element
+        fluidConductances
+        fluidCrossSectionAreas
+        
         receedingContactAngle=20;
         advandingContactAngle
      
