@@ -12,7 +12,6 @@ classdef Network < handle
         numberOfNodes
         
         Porosity
-        nodesPressure
         totalFlowRate
         absolutePermeability
     end
@@ -93,11 +92,17 @@ classdef Network < handle
             end
             obj.Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);            
         end
+        
+        %% Saturation Calculation 
+        function obj = calculateSaturations(obj)
+        
+        
+        end
             
             
         %% Pressure distribution calculation
         
-        function nodesPressure = pressureDistribution (obj, inletPressure, outletPressure)
+        function pressureDistribution (obj, inletPressure, outletPressure)
             % pressureDistribution Summary of this method goes here
             %   Detailed explanation goes here
             Factor = zeros(obj.numberOfNodes, obj.numberOfNodes);
@@ -141,30 +146,20 @@ classdef Network < handle
                    
                 end     
             end
-                   
+            
+            % using Preconditioned conjugate gradients method to solve the
+            % pressure distribution 
             nodesPressure = pcg(Factor,B,1e-6,300);
+            
+            %assign the pressure values to each node
+            for ii = 1:obj.numberOfNodes
+                obj.Nodes{ii}.waterPressure = nodesPressure(ii);
+            end
         end
             
             %
         function totalFlowRate = calculateFlowRate(obj, inletPressure, outletPressure)
-            A = zeros(obj.numberOfNodes, obj.numberOfNodes);
-            C = zeros(obj.numberOfNodes, 1);
-            
-            for i = 1:obj.numberOfNodes
-                C(i) = inletPressure * (obj.Nodes{i})
-                
-                
-                if obj.Nodes{i}.isInlet
-                    
-                    
-                    
-                elseif obj.Nodes{i}.isOutlet
-                    
-                else
-                    
-                end
-            end
-            
+
         end
         
         function absolutePermeability =  AbsolutePermeabilityCalculation(obj,inletPressure)
