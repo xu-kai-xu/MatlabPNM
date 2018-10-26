@@ -155,11 +155,27 @@ classdef Network < handle
             for ii = 1:obj.numberOfNodes
                 obj.Nodes{ii}.waterPressure = nodesPressure(ii);
             end
+            
+            %assign pressure values to links, since the surface whci
+            %flowrate is calculated through might pass through the links
+            for ii = 1:obj.numberOfLinks
+                if obj.Links{ii}.isInlet
+                    obj.Links{ii}.waterPressure =...
+                        obj.Nodes{obj.Links{ii}.pore2Index}.waterPressure;
+                elseif obj.Links{ii}.isOutlet
+                    obj.Links{ii}.waterPressure =...
+                        obj.Nodes{obj.Links{ii}.pore1Index}.waterPressure;                    
+                else
+                    obj.Links{ii}.waterPressure =...
+                        (obj.Nodes{obj.Links{ii}.pore1Index}.waterPressure + ...
+                        obj.Nodes{obj.Links{ii}.pore2Index}.waterPressure) / 2;
+                end
+            end
         end
             
-            %
-        function totalFlowRate = calculateFlowRate(obj, inletPressure, outletPressure)
-
+        %% This function calculates the flow rate for each phase in the netwrok
+        function calculateFlowRate(obj, inletPressure, outletPressure)
+            
         end
         
         function absolutePermeability =  AbsolutePermeabilityCalculation(obj,inletPressure)
