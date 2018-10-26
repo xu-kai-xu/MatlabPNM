@@ -1,4 +1,4 @@
-classdef Network < handle
+classdef Network < handle & Fluids
     %Network Summary of this class goes here
     %   This class contain nodes and links of the network
     
@@ -17,6 +17,7 @@ classdef Network < handle
     end
     
     methods
+        %% Cunstructor function
         function obj = Network(fileName)
             %Network Construct an instance of this class
             %   Detailed explanation goes here
@@ -79,7 +80,6 @@ classdef Network < handle
             fclose(node_1_fileID); fclose(node_2_fileID);    
             
         end
-
         %% Porosity calculation
         function obj = calculatePorosity(obj)
             nodesVolume = 0;
@@ -92,16 +92,12 @@ classdef Network < handle
             end
             obj.Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);            
         end
-        
         %% Saturation Calculation 
         function obj = calculateSaturations(obj)
         
         
         end
-            
-            
-        %% Pressure distribution calculation
-        
+        %% Pressure distribution calculation        
         function pressureDistribution (obj, inletPressure, outletPressure)
             % pressureDistribution Summary of this method goes here
             %   Detailed explanation goes here
@@ -172,21 +168,60 @@ classdef Network < handle
                 end
             end
         end
-            
         %% This function calculates the flow rate for each phase in the netwrok
-        function calculateFlowRate(obj, inletPressure, outletPressure)
+        function calculateFlowRate(obj)
+            % location of the surface whcih the flow rate should be
+            % calculated through is the half distance of the network
+            surfaceLocation = obj.xDimension / 2;
+            flowRate = 0;
             
+            %search through all the links
+            for ii = 1:obj.numberOfLinks
+                %the link should not be nether inlet nor outlet becasue it
+                %makes problem in the index of the connected nodes
+                if ~obj.Links{ii}.isInlet && ~obj.Links{ii}.isOutlet
+                    
+                    node1Index = obj.Links{ii}.pore1Index;
+                    node2Index = obj.Links{ii}.pore2Index;
+                   %if the two connected nodes pass through the sufrace
+                    %count the flow of fluid passing the link connecting
+                    %them
+                    if obj.Nodes{node1Index}.x_coordinate < surfaceLocation && ...
+                            obj.Nodes{node2Index}.x_coordinate > surfaceLocation   
+                        
+                        %calculate the conductivity of the linNode system
+                        nodeLinkSystemConductance = ((obj.Links{ii}.linkLength /...
+                            obj.Links{ii}.conductance) +...
+                            0.5 *...
+                            ((obj.Links{ii}.pore1Length / obj.Nodes{node1Index}.conductance) +...
+                            (obj.Links{ii}.pore2Length / obj.Nodes{node2Index}.conductance)))^-1;
+                        
+                        % calculate the flow rate of the fluid
+                        flowRate = flowRate + ...
+                            nodeLinkSystemConductance * ...
+                            (obj.Nodes{node1Index}.waterPressure - ...
+                            obj.Nodes{node2Index}.waterPressure);
+                        
+                    end
+                end 
+            end
+            obj.totalFlowRate = flowRate;
         end
-        
-        function absolutePermeability =  AbsolutePermeabilityCalculation(obj,inletPressure)
+        %% Calculate the 
+        function AbsolutePermeabilityCalculation(obj)
             %AbsolutePermeability calculates the absolute permeability of
             %the network
             %   Detailed explanation goes here
-            
-%             absolutePermeability = obj.xDimention + inletPressure;
-        end
-        
-        %%vtk file generation
+            obj.pressureDistribution(1,0);
+            obj.calculateFlowRate();
+            % unit conversion from m2 to Darcy
+            unitConvertor = 1.01325E+12;
+            % for pressure difference in the formula the corresponding
+            % pressure drop between the vertical surfaces should be
+            % calculated (based on Piri B1 formula)
+            obj.absolutePermeability = unitConvertor * 0.001 * obj.totalFlowRate * obj.xDimension / (obj.yDimension* obj.zDimension); %/ ()
+        end     
+        %% vtk file generation
         function vtkOutput(obj)
             vtkFileID = fopen('output.vtk','w');
             if vtkFileID == -1
