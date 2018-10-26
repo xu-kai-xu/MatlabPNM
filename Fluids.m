@@ -1,4 +1,4 @@
-classdef Fluids
+classdef Fluids < handle
     %Fluids: contains information related to oil, gas and water 
     
     %   send the conductivity and cross section area of each fluid to each
@@ -19,10 +19,10 @@ classdef Fluids
     end
     
     methods
-        function obj = untitled(inputArg1,inputArg2)
-            %UNTITLED Construct an instance of this class
-            %   Detailed explanation goes here
-            obj.Property1 = inputArg1 + inputArg2;
+        function obj = Fluids()
+            %Fluids Construct an instance of class Fluids
+            %   This class contains fluids properties
+            obj.waterViscosity = 0.001;
         end
         
         function outputArg = method1(obj,inputArg)

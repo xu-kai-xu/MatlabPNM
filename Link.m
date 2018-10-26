@@ -27,14 +27,30 @@ classdef Link < Element
                             clayVolume)
             %UNTITLED3 Construct an instance of this class
             %   Detailed explanation goes here
-            obj.index = index; 
-            obj.pore1Index = pore1Index; 
-            obj.pore2Index = pore2Index;
+            obj.index = index;
+            %This condition is to set the nodes with index -1 in node1 and
+            %nodes with 0 index in node2
+            if pore2Index == -1
+                obj.pore1Index = pore2Index; 
+                obj.pore2Index = pore1Index;
+                obj.pore1Length = pore2Length;
+                obj.pore2Length = pore1Length;    
+            elseif pore1Index == 0   
+                obj.pore1Index = pore2Index; 
+                obj.pore2Index = pore1Index;
+                obj.pore1Length = pore2Length;
+                obj.pore2Length = pore1Length;    
+                
+            else            
+                obj.pore1Index = pore1Index; 
+                obj.pore2Index = pore2Index;
+                obj.pore1Length = pore1Length;
+                obj.pore2Length = pore2Length;
+            end
+            
             obj.radius = radius;
             obj.shapeFactor = shapeFactor;
             obj.length = length;
-            obj.pore1Length = pore1Length;
-            obj.pore2Length = pore2Length;
             obj.linkLength = linkLength;
             obj.volume = volume;
             obj.clayVolume = clayVolume;
@@ -72,7 +88,7 @@ classdef Link < Element
                 obj.halfAngle4 = pi / 4;
                 obj.area = 4*obj.radius^2;                
                 obj.conductance = 0.5623 * obj.area^2 * obj.shapeFactor /water_viscosity;
-            elseif obj.shapeFactor > 1 / 16
+            elseif obj.shapeFactor >= 1 / 16
                 obj.geometry = 'circle';
                 obj.halfAngle1 = nan;
                 obj.halfAngle2 = nan;
