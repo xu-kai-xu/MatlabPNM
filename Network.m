@@ -100,44 +100,50 @@ classdef Network
             % pressureDistribution Summary of this method goes here
             %   Detailed explanation goes here
             Factor = zeros(obj.numberOfNodes, obj.numberOfNodes);
-            B = zeros(obj.numberOfNodes, 1);            
-         
-            for ii = 1:obj.numberOfNodes
-                for jj = 1:obj.numberOfNodes
-                    if obj.Nodes{ii}.isInlet
-                        Factor(ii,jj) = obj.Nodes{ii}.conductance;
-                        B(ii) = Factor(ii,jj)*inletPressure;
-                    elseif obj.Nodes{ii}.isOutlet
-                        Factor(ii,jj) = obj.Nodes{ii}.conductance;  
-                        B(ii) = Factor(ii,jj)*outletPressure;
-                    else
-                        B(ii) = 0;
-                    end
-                    C=0;
-                    for k = 1:obj.Nodes{ii}.connectionNumber
-                        l = obj.Nodes{ii}.connectedLinks(k);
-                        if ii ~= jj
-                            if obj.Nodes{jj}.index == obj.Nodes{ii}.connectedNodes(k)                                
-                                Factor(ii,jj) = (obj.Links{l}.linkLength/obj.Links{l}.conductance)+...
-                                    0.5*(obj.Links{l}.pore1Length/obj.Nodes{ii}.conductance +...       
-                                    obj.Links{l}.pore1Length/obj.Nodes{jj}.conductance); 
-                            end
-                        else
-                            Lt = obj.Links{l}.linkLength;
-                            Ct = obj.Links{l}.conductance;
-                            Lpi = obj.Links{l}.pore1Length;
-                            Cpi = obj.Nodes{ii}.conductance;                            
-                            Lpj = obj.Links{l}.pore2Length;
-                            Cpj = obj.Nodes{jj}.conductance;
-                            C=C+(Lt/Ct)+ 0.5*(Lpi /Cpi + Lpj /Cpj);
-                        end
-                    end
+            B = zeros(obj.numberOfNodes, 1);  
+            
+            for ii = 1:obj.numberOfLinks
+                
+                ii
+                node1Index = obj.Links{ii}.pore1Index;
+                node2Index = obj.Links{ii}.pore2Index;
+
+                % if the link is connected to inlet (index of node 1 is -1 which does not exist) 
+                if obj.Links{ii}.isInlet
+                    nodeLinkSystemConductance = ((obj.Links{ii}.linkLength /...
+                        obj.Links{ii}.conductance) +...
+                        0.5 *...
+                        ((obj.Links{ii}.pore2Length / obj.Nodes{node2Index}.conductance)))^-1;
                     
-                    Factor(ii,jj)=Factor(ii,jj)+C;
-                    end                
+                    Factor(node2Index, node2Index) = Factor(node2Index, node2Index) + nodeLinkSystemConductance;
+                    B(node2Index) = nodeLinkSystemConductance * inletPressure;
+                % if the link is connected to outlet (index of node 2 is 0 which does not exist)
+                elseif obj.Links{ii}.isOutlet
+                     nodeLinkSystemConductance = ((obj.Links{ii}.linkLength /...
+                        obj.Links{ii}.conductance) +...
+                        0.5 *...
+                        ((obj.Links{ii}.pore1Length / obj.Nodes{node1Index}.conductance)))^-1;
+                    Factor(node1Index, node1Index) = Factor(node1Index, node1Index) + nodeLinkSystemConductance;
+                    B(node1Index) = nodeLinkSystemConductance * outletPressure;
+                    
+                %if the link is neither inlet nor outlet    
+                else
+                    nodeLinkSystemConductance = ((obj.Links{ii}.linkLength /...
+                        obj.Links{ii}.conductance) +...
+                        0.5 *...
+                        ((obj.Links{ii}.pore1Length / obj.Nodes{node1Index}.conductance) +...
+                        (obj.Links{ii}.pore2Length / obj.Nodes{node2Index}.conductance)))^-1;   
+                
+                    Factor(node1Index, node1Index) = Factor(node1Index, node1Index) + nodeLinkSystemConductance;
+                    Factor(node2Index, node2Index) = Factor(node2Index, node2Index) + nodeLinkSystemConductance;
+                    Factor(node1Index, node2Index) = Factor(node1Index, node2Index) - nodeLinkSystemConductance;
+                    Factor(node2Index, node1Index) = Factor(node2Index, node1Index) - nodeLinkSystemConductance;
+                   
+                end     
             end
-            nodesPressure = B\Factor;
-            end
+                   
+            pcg(Factor,B,1e-6,30000)
+        end
             
             %
         function calculateFlowRate(obj, inletPressure, outletPressure)
