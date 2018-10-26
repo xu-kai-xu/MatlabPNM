@@ -1,4 +1,4 @@
-classdef Network
+classdef Network < handle
     %Network Summary of this class goes here
     %   This class contain nodes and links of the network
     
@@ -11,8 +11,9 @@ classdef Network
         numberOfLinks
         numberOfNodes
         
-        
-        
+        Porosity
+        nodesPressure
+        totalFlowRate
         absolutePermeability
     end
     
@@ -81,7 +82,7 @@ classdef Network
         end
 
         %% Porosity calculation
-            function Porosity = calculatePorosity(obj)
+        function obj = calculatePorosity(obj)
             nodesVolume = 0;
             linksVolume = 0;
             for ii = 1:obj.numberOfNodes
@@ -90,8 +91,8 @@ classdef Network
             for ii = 1:obj.numberOfLinks
                 linksVolume = linksVolume + (obj.Links{ii}.volume) ;
             end
-            Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);            
-            end
+            obj.Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);            
+        end
             
             
         %% Pressure distribution calculation
@@ -104,7 +105,6 @@ classdef Network
             
             for ii = 1:obj.numberOfLinks
                 
-                ii
                 node1Index = obj.Links{ii}.pore1Index;
                 node2Index = obj.Links{ii}.pore2Index;
 
@@ -142,11 +142,11 @@ classdef Network
                 end     
             end
                    
-            pcg(Factor,B,1e-6,30000)
+            nodesPressure = pcg(Factor,B,1e-6,300);
         end
             
             %
-        function calculateFlowRate(obj, inletPressure, outletPressure)
+        function totalFlowRate = calculateFlowRate(obj, inletPressure, outletPressure)
             A = zeros(obj.numberOfNodes, obj.numberOfNodes);
             C = zeros(obj.numberOfNodes, 1);
             
