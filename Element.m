@@ -32,6 +32,11 @@ classdef Element
         
         receedingContactAngle=20;
         advandingContactAngle
+        
+        waterPressure
+        oilPressure
+        gasPressure
+        
      
     end
     
