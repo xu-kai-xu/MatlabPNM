@@ -29,19 +29,43 @@ classdef Element
         %fluid as a structure for this each element
         fluidConductances
         fluidCrossSectionAreas
-        
+                
         receedingContactAngle=20;
         advandingContactAngle
         
         waterPressure
         oilPressure
         gasPressure
+        thresholdPressure
         
      
     end
     
     methods
-        function cal_water_conductance(obj, Pc, sig_ow, water_viscosity)
+        function ThresholdPressure = calculateThresholdPressurePistonLike (obj, sig_ow)
+         % calculateThresholdPressurePistonLike Summary of this method goes here
+         % Detailed explanation goes here         
+             if strcmp(obj.geometry , 'Circle')== 1
+                 ThresholdPressure = 2*sig_ow*cos(obj.receedingContactAngle)/obj.radius;
+             else
+                 nominator = 0;
+                 halfAngles = [obj.halfAngle1, obj.halfAngle2,obj.halfAngle3, obj.halfAngle4];
+                 for jj = 1:4
+                     if ~isnan(halfAngles(jj)) && halfAngles(jj) < pi/2 - obj.receedingContactAngle
+                         E2 = cos(obj.receedingContactAngle + halfAngles(jj)) *...
+                             cos(obj.receedingContactAngle) / sin(halfAngles(jj));
+                         E0 = pi / 2 - obj.receedingContactAngle - halfAngles(jj);
+                         nominator = nominator +  (E2 - E0);
+                     end
+                 end
+                 ThresholdPressure = (sig_ow / obj.radius)*...
+                     cos(obj.receedingContactAngle)*(1+sqrt(1 -(4*obj.shapeFactor*...
+                     nominator)/(cos(obj.receedingContactAngle)^2)));
+             end
+         end
+        
+        
+        function obj = cal_water_conductance(obj, Pc, sig_ow, water_viscosity)
             curvatureRadius = sig_ow / Pc;
             b = zeros(1,4); % Meniscus-Apex distance
             if strcmp(obj.geometry , 'Circle')== 1
@@ -88,7 +112,7 @@ classdef Element
             end
         end
     
-        function cal_oil_conductance (obj, oil_viscosity)            
+        function obj = cal_oil_conductance (obj, oil_viscosity)            
             obj.oil_area = obj.area - obj.water_area;
             if strcmp(obj.geometry , 'Circle')== 1
                obj.oil_conductance = (obj.oil_area / obj.area)*0.5 * obj.area^2 * obj.shapeFactor /oil_viscosity;

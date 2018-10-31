@@ -47,6 +47,7 @@ classdef Node < Element
             obj.shapeFactor = shapeFactor;
             obj.clayVolume = clayVolume;
             water_viscosity = 0.001;
+            sig_ow = 20e-3; % N/m
             
             
             % Geometry and conductance specification of the elements is
@@ -79,7 +80,8 @@ classdef Node < Element
                 obj.halfAngle4 = nan;
                 obj.area = pi*obj.radius^2;                
                 obj.conductance = 0.5 * obj.area^2 * obj.shapeFactor /water_viscosity;
-            end
+            end            
+            obj.thresholdPressure = obj.calculateThresholdPressurePistonLike(sig_ow);
         end
         
     end

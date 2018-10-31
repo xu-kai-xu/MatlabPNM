@@ -149,7 +149,7 @@ classdef Network < handle & Fluids
             
             %assign the pressure values to each node
             for ii = 1:obj.numberOfNodes
-                obj.Nodes{ii}.waterPressure = nodesPressure(ii);
+                obj.Nodes{ii}.waterPressure = nodesPressure(ii);      
             end
             
             %assign pressure values to links, since the surface whci
