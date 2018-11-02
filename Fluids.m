@@ -6,29 +6,18 @@ classdef Fluids < handle
     %   each phase
     
     properties
-        waterViscosity
-        oilViscosity
-        gasViscosity
-        
-        waterCrossSectionArea
-        oilCrossSectionArea
-        gasCrossSectionArea
-        waterConductance
-        oilConductance
-        gasConductance
+        fluidType;
+    end
+    
+    methods (Abstract=true)
+        Conductance = calculateConductance(obj);
+        %CrossSectionArea = calculateCrossSectionArea(obj);
+    
     end
     
     methods
-        function obj = Fluids()
-            %Fluids Construct an instance of class Fluids
-            %   This class contains fluids properties
-            obj.waterViscosity = 0.001;
-        end
-        
-        function outputArg = method1(obj,inputArg)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
+        function obj = Fluids (Type)
+            obj.fluidType = Type;
         end
     end
 end

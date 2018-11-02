@@ -1,4 +1,4 @@
-classdef Network < handle & Fluids
+classdef Network < handle
     %Network Summary of this class goes here
     %   This class contain nodes and links of the network
     
@@ -205,10 +205,10 @@ classdef Network < handle & Fluids
                     end
                 end 
             end
-            obj.totalFlowRate = flowRate;
+            obj.totalFlowRate = flowRate;           
         end
-        %% Calculate the 
-        function AbsolutePermeabilityCalculation(obj)
+        %% Calculate AbsolutePermeability 
+        function calculateAbsolutePermeability(obj)
             %AbsolutePermeability calculates the absolute permeability of
             %the network
             %   Detailed explanation goes here
