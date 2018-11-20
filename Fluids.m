@@ -10,7 +10,7 @@ classdef Fluids < handle
     end
     
     methods (Abstract=true)
-        Conductance = calculateConductance(obj);
+        %Conductance = calculateConductance(obj);
         %CrossSectionArea = calculateCrossSectionArea(obj);
     
     end

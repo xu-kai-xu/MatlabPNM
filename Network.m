@@ -92,7 +92,104 @@ classdef Network < handle
             end
             obj.Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);            
         end
-        %% Saturation Calculation 
+        %% Conductance Calculation
+         function calculateConductance(obj,phase)           
+            for ii = 1:obj.numberOfNodes
+                curvatureRadius = phase.sig_ow / obj.Nodes{ii}.thresholdPressure;
+                b = zeros(1,4); % Meniscus-Apex distance
+                if strcmp(obj.Nodes{ii}.geometry , 'Circle')== 1
+                    phase.waterArea = 0;
+                    obj.conductance = 0;
+                else
+                    dimenlessAreaCorner = zeros(1,4);
+                    cornerShapeFactor = zeros(1,4);
+                    scaledDimenlessConducCorner = zeros(1,4);
+                    dimenlessConducCorner = zeros(1,4);
+                    halfAngles = [obj.Nodes{ii}.halfAngle1, obj.Nodes{ii}.halfAngle2,...
+                        obj.Nodes{ii}.halfAngle3, obj.Nodes{ii}.halfAngle4];
+                    for jj = 1:4
+                        if ~isnan(halfAngles(jj))
+                            b(jj) = (curvatureRadius * cos(obj.Nodes{ii}.receedingContactAngle +...
+                                halfAngles(jj)) / sin(halfAngles(jj)));
+                            
+                            if (halfAngles(jj) + obj.Nodes{ii}.receedingContactAngle) == pi/2
+                                dimenlessAreaCorner(jj) = sin(halfAngles(jj))*cos(halfAngles(jj));
+                                cornerShapeFactor(jj) = dimenlessAreaCorner(jj) /...
+                                    (4 * (1 + sin(halfAngles(jj)))^2);
+                            else
+                                dimenlessAreaCorner(jj) = (sin(halfAngles(jj)) /...
+                                    cos(obj.Nodes{ii}.receedingContactAngle + halfAngles(jj)))^2 *...
+                                    ((cos(obj.Nodes{ii}.receedingContactAngle)*...
+                                    cos(obj.Nodes{ii}.receedingContactAngle + halfAngles(jj)) /...
+                                    sin(halfAngles(jj)))+ obj.Nodes{ii}.receedingContactAngle +...
+                                    halfAngles(jj) - pi/2);
+                                cornerShapeFactor(jj) = dimenlessAreaCorner(jj) /...
+                                    (4 * (1 - (sin(halfAngles(jj)) / cos(halfAngles(jj)+...
+                                    obj.Nodes{ii}.receedingContactAngle))*...
+                                    (obj.Nodes{ii}.receedingContactAngle + halfAngles(jj) - pi/2))^2);
+                            end
+                            
+                            scaledDimenlessConducCorner(jj) = -15.1794 * cornerShapeFactor(jj)^2 +...
+                                7.6307 * cornerShapeFactor(jj) - 0.53488;
+                            
+                            dimenlessConducCorner(jj) = exp((scaledDimenlessConducCorner(jj) +...
+                                0.02 * sin(halfAngles(jj) - pi/6)) / (1/4/pi - cornerShapeFactor(jj))^(7/8)...
+                                / cos(halfAngles(jj) - pi/6)^0.5) * dimenlessAreaCorner(jj)^2;
+                        end
+                    end
+                    phase.waterArea = sum(b.^2 .* dimenlessAreaCorner);
+                    obj.Nodes{ii}.waterConductance = sum(2 * b.^4 .* dimenlessConducCorner / phase.viscosity);
+                end
+            end
+            for ii = 1:obj.numberOfLinks
+                curvatureRadius = phase.sig_ow / obj.Links{ii}.thresholdPressure;
+                b = zeros(1,4); % Meniscus-Apex distance
+                if strcmp(obj.Links{ii}.geometry , 'Circle')== 1
+                    phase.waterArea = 0;
+                    obj.conductance = 0;
+                else
+                    dimenlessAreaCorner = zeros(1,4);
+                    cornerShapeFactor = zeros(1,4);
+                    scaledDimenlessConducCorner = zeros(1,4);
+                    dimenlessConducCorner = zeros(1,4);
+                    halfAngles = [obj.Links{ii}.halfAngle1, obj.Links{ii}.halfAngle2,...
+                        obj.Links{ii}.halfAngle3, obj.Links{ii}.halfAngle4];
+                    for jj = 1:4
+                        if ~isnan(halfAngles(jj))
+                            b(jj) = (curvatureRadius * cos(obj.Links{ii}.receedingContactAngle +...
+                                halfAngles(jj)) / sin(halfAngles(jj)));
+                            
+                            if (halfAngles(jj) + obj.Links{ii}.receedingContactAngle) == pi/2
+                                dimenlessAreaCorner(jj) = sin(halfAngles(jj))*cos(halfAngles(jj));
+                                cornerShapeFactor(jj) = dimenlessAreaCorner(jj) /...
+                                    (4 * (1 + sin(halfAngles(jj)))^2);
+                            else
+                                dimenlessAreaCorner(jj) = (sin(halfAngles(jj)) /...
+                                    cos(obj.Links{ii}.receedingContactAngle + halfAngles(jj)))^2 *...
+                                    ((cos(obj.Links{ii}.receedingContactAngle)*...
+                                    cos(obj.Links{ii}.receedingContactAngle + halfAngles(jj)) /...
+                                    sin(halfAngles(jj)))+ obj.Links{ii}.receedingContactAngle +...
+                                    halfAngles(jj) - pi/2);
+                                cornerShapeFactor(jj) = dimenlessAreaCorner(jj) /...
+                                    (4 * (1 - (sin(halfAngles(jj)) / cos(halfAngles(jj)+...
+                                    obj.Links{ii}.receedingContactAngle))*...
+                                    (obj.Links{ii}.receedingContactAngle + halfAngles(jj) - pi/2))^2);
+                            end
+                            
+                            scaledDimenlessConducCorner(jj) = -15.1794 * cornerShapeFactor(jj)^2 +...
+                                7.6307 * cornerShapeFactor(jj) - 0.53488;
+                            
+                            dimenlessConducCorner(jj) = exp((scaledDimenlessConducCorner(jj) +...
+                                0.02 * sin(halfAngles(jj) - pi/6)) / (1/4/pi - cornerShapeFactor(jj))^(7/8)...
+                                / cos(halfAngles(jj) - pi/6)^0.5) * dimenlessAreaCorner(jj)^2;
+                        end
+                    end
+                    phase.waterArea = sum(b.^2 .* dimenlessAreaCorner);
+                    obj.Links{ii}.waterConductance = sum(2 * b.^4 .* dimenlessConducCorner / phase.viscosity);
+                end
+            end
+        end
+        %% Saturation Calculation
         function obj = calculateSaturations(obj)
         
         
