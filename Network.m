@@ -1,4 +1,4 @@
-classdef Network < handle
+classdef Network < handle & Fluids
     %Network Summary of this class goes here
     %   This class contain nodes and links of the network
     
@@ -14,6 +14,7 @@ classdef Network < handle
         Porosity
         totalFlowRate
         absolutePermeability
+        poreVolume
     end
     
     methods
@@ -34,7 +35,7 @@ classdef Network < handle
             temp = str2num(fgetl(node_1_fileID));
             obj.numberOfNodes = temp(1);
             
-            % Network dimention
+            % Network dimension
             obj.xDimension = temp(2);
             obj.yDimension = temp(3);
             obj.zDimension = temp(4);
@@ -90,15 +91,16 @@ classdef Network < handle
             for ii = 1:obj.numberOfLinks
                 linksVolume = linksVolume + (obj.Links{ii}.volume) ;
             end
-            obj.Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);            
+            obj.Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);  
+            obj.poreVolume = linksVolume + nodesVolume;
         end
         %% Conductance Calculation
-         function calculateConductance(obj,phase)           
-            for ii = 1:obj.numberOfNodes
-                curvatureRadius = phase.sig_ow / obj.Nodes{ii}.thresholdPressure;
+         function calculateConductance(obj)           
+            for ii = 1:obj.numberOfNodes                
+                curvatureRadius = obj.sig_ow / obj.Nodes{ii}.thresholdPressure;
                 b = zeros(1,4); % Meniscus-Apex distance
                 if strcmp(obj.Nodes{ii}.geometry , 'Circle')== 1
-                    phase.waterArea = 0;
+                    obj.waterArea = 0;
                     obj.conductance = 0;
                 else
                     dimenlessAreaCorner = zeros(1,4);
@@ -137,15 +139,15 @@ classdef Network < handle
                                 / cos(halfAngles(jj) - pi/6)^0.5) * dimenlessAreaCorner(jj)^2;
                         end
                     end
-                    phase.waterArea = sum(b.^2 .* dimenlessAreaCorner);
-                    obj.Nodes{ii}.waterConductance = sum(2 * b.^4 .* dimenlessConducCorner / phase.viscosity);
+                    obj.Nodes{ii}.waterCrossSectionArea = sum(b.^2 .* dimenlessAreaCorner);
+                    obj.Nodes{ii}.waterConductance = sum(2 * b.^4 .* dimenlessConducCorner / obj.waterViscosity);
                 end
             end
             for ii = 1:obj.numberOfLinks
-                curvatureRadius = phase.sig_ow / obj.Links{ii}.thresholdPressure;
+                curvatureRadius = obj.sig_ow / obj.Links{ii}.thresholdPressure;
                 b = zeros(1,4); % Meniscus-Apex distance
                 if strcmp(obj.Links{ii}.geometry , 'Circle')== 1
-                    phase.waterArea = 0;
+                    obj.waterArea = 0;
                     obj.conductance = 0;
                 else
                     dimenlessAreaCorner = zeros(1,4);
@@ -184,15 +186,44 @@ classdef Network < handle
                                 / cos(halfAngles(jj) - pi/6)^0.5) * dimenlessAreaCorner(jj)^2;
                         end
                     end
-                    phase.waterArea = sum(b.^2 .* dimenlessAreaCorner);
-                    obj.Links{ii}.waterConductance = sum(2 * b.^4 .* dimenlessConducCorner / phase.viscosity);
+                    obj.Links{ii}.waterCrossSectionArea = sum(b.^2 .* dimenlessAreaCorner);
+                    obj.Links{ii}.waterConductance = sum(2 * b.^4 .* dimenlessConducCorner / obj.waterViscosity);
                 end
             end
         end
         %% Saturation Calculation
-        function obj = calculateSaturations(obj)
-        
-        
+        function Sw_drain = calculateSaturations(obj)
+             % Water Saturation Calculation
+             waterVolume = 0;
+             totalPV = 0;
+            
+            for ii = 1:obj.numberOfLinks
+                
+                node1Index = obj.Links{ii}.pore1Index;
+                node2Index = obj.Links{ii}.pore2Index;
+                 % if the link is connected to inlet (index of node 1 is -1 which does not exist) 
+                if obj.Links{ii}.isInlet
+                waterVolume = waterVolume+ obj.Links{ii}.waterCrossSectionArea * obj.Links{ii}.linkLength + ...                   
+                    obj.Nodes{node2Index}.waterCrossSectionArea* obj.Links{ii}.pore2Length;
+%                 totalPV = totalPV+ obj.Links{ii}.volume + obj.Nodes{node2Index}.volume;
+                 % if the link is connected to outlet (index of node 2 is 0 which does not exist)
+                elseif obj.Links{ii}.isOutlet
+                 %if the link is neither inlet nor outlet  
+                 waterVolume = waterVolume+ obj.Links{ii}.waterCrossSectionArea * obj.Links{ii}.linkLength + ...
+                     obj.Nodes{node1Index}.waterCrossSectionArea* obj.Links{ii}.pore1Length;
+%                  totalPV = totalPV + obj.Links{ii}.volume + obj.Nodes{node1Index}.volume;
+                else
+                    waterVolume = waterVolume+ obj.Links{ii}.waterCrossSectionArea * obj.Links{ii}.linkLength + ...
+                        obj.Nodes{node1Index}.waterCrossSectionArea* obj.Links{ii}.pore1Length + ...
+                        obj.Nodes{node2Index}.waterCrossSectionArea* obj.Links{ii}.pore2Length;
+%                     totalPV =  totalPV+ obj.Links{ii}.volume + ...
+%                         obj.Nodes{node1Index}.volume + obj.Nodes{node2Index}.volume;
+                end
+                    
+            end
+            waterVolume
+            Sw_drain = waterVolume / obj.poreVolume;
+            
         end
         %% Pressure distribution calculation        
         function pressureDistribution (obj, inletPressure, outletPressure)
@@ -242,7 +273,7 @@ classdef Network < handle
             
             % using Preconditioned conjugate gradients method to solve the
             % pressure distribution 
-            nodesPressure = pcg(Factor,B,1e-6,300);
+            nodesPressure = pcg(Factor,B,1e-3,300);
             
             %assign the pressure values to each node
             for ii = 1:obj.numberOfNodes

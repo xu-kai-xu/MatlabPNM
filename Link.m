@@ -99,6 +99,7 @@ classdef Link < Element
                 obj.conductance = 0.5 * obj.area^2 * obj.shapeFactor /water_viscosity;
             end
             obj.thresholdPressure = obj.calculateThresholdPressurePistonLike(sig_ow);
+%             obj.waterConductance = obj.calculateConductance();
         end
         
     end

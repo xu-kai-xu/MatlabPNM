@@ -6,19 +6,41 @@ classdef Fluids < handle
     %   each phase
     
     properties
-        fluidType;
+        waterViscosity
+        oilViscosity
+        gasViscosity
+        sig_ow
+        
+      % Calculated properties
+%         waterCrossSectionArea
+%         oilCrossSectionArea
+%         gasCrossSectionArea        
+%         waterConductance
+%         oilConductance
+%         gasConductance
+
     end
     
-    methods (Abstract=true)
-        %Conductance = calculateConductance(obj);
-        %CrossSectionArea = calculateCrossSectionArea(obj);
-    
-    end
     
     methods
-        function obj = Fluids (Type)
-            obj.fluidType = Type;
-        end
+         function obj = Fluids()
+             obj.waterViscosity = 0.001;
+             obj.oilViscosity = 0.001;
+             obj.gasViscosity = 0.00001;
+             obj.sig_ow = 20e-3; % N/m
+         end
+%         function obj = Fluids(Type)
+%            %Fluids Construct an instance of class Fluids
+%             %   This class contains fluids properties
+%             switch Type
+%                 case 'water'
+%                     obj.waterViscosity = 0.001;
+%                 case 'oil'
+%                     obj.oilViscosity = 0.001;
+%                 case 'gas'
+%                     obj.gasViscosity = 0.00001;
+%             end
+%         end
     end
 end
 
