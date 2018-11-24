@@ -9,27 +9,38 @@ classdef Fluids < handle
         waterViscosity
         oilViscosity
         gasViscosity
+        sig_ow
         
-        waterCrossSectionArea
-        oilCrossSectionArea
-        gasCrossSectionArea
-        waterConductance
-        oilConductance
-        gasConductance
+      % Calculated properties
+%         waterCrossSectionArea
+%         oilCrossSectionArea
+%         gasCrossSectionArea        
+%         waterConductance
+%         oilConductance
+%         gasConductance
+
     end
     
+    
     methods
-        function obj = Fluids()
-            %Fluids Construct an instance of class Fluids
-            %   This class contains fluids properties
-            obj.waterViscosity = 0.001;
-        end
-        
-        function outputArg = method1(obj,inputArg)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
-        end
+         function obj = Fluids()
+             obj.waterViscosity = 0.001;
+             obj.oilViscosity = 0.001;
+             obj.gasViscosity = 0.00001;
+             obj.sig_ow = 20e-3; % N/m
+         end
+%         function obj = Fluids(Type)
+%            %Fluids Construct an instance of class Fluids
+%             %   This class contains fluids properties
+%             switch Type
+%                 case 'water'
+%                     obj.waterViscosity = 0.001;
+%                 case 'oil'
+%                     obj.oilViscosity = 0.001;
+%                 case 'gas'
+%                     obj.gasViscosity = 0.00001;
+%             end
+%         end
     end
 end
 

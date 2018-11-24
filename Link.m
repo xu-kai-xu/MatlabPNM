@@ -55,6 +55,7 @@ classdef Link < Element
             obj.volume = volume;
             obj.clayVolume = clayVolume;
             water_viscosity = 0.001;
+            sig_ow = 20e-3; % N/m
             
             
             %Cheking inlet or outlet status of the link
@@ -97,6 +98,7 @@ classdef Link < Element
                 obj.area = pi*obj.radius^2;                
                 obj.conductance = 0.5 * obj.area^2 * obj.shapeFactor /water_viscosity;
             end
+            obj.thresholdPressure = obj.calculateThresholdPressurePistonLike(sig_ow);
         end
         
     end
