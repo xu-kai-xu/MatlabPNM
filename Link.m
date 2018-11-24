@@ -79,7 +79,7 @@ classdef Link < Element
                 obj.halfAngle1 = -0.5 * obj.halfAngle2 + 0.5 * asin((tan(obj.halfAngle2) + 4 * obj.shapeFactor) * sin(obj.halfAngle2) / (tan(obj.halfAngle2) - 4 * obj.shapeFactor));
                 obj.halfAngle3 = pi / 2 - obj.halfAngle1 - obj.halfAngle2;
                 obj.halfAngle4 = nan;
-                obj.area = obj.radius^2/4/obj.shapeFactor;                
+                obj.area = obj.radius^2/4*obj.shapeFactor;                
                 obj.conductance = 3 * obj.area^2 * obj.shapeFactor /water_viscosity / 5;
             elseif obj.shapeFactor > sqrt(3) / 36 && obj.shapeFactor < 1 / 16
                 obj.geometry = 'Square';
@@ -99,7 +99,6 @@ classdef Link < Element
                 obj.conductance = 0.5 * obj.area^2 * obj.shapeFactor /water_viscosity;
             end
             obj.thresholdPressure = obj.calculateThresholdPressurePistonLike(sig_ow);
-%             obj.waterConductance = obj.calculateConductance();
         end
         
     end

@@ -10,6 +10,6 @@ network.calculatePorosity();
 fprintf('Porosity of the model is: %3.5f \n', network.Porosity)
  
 network.pressureDistribution(1,0)
-%network.calculateAbsolutePermeability();
+network.calculateAbsolutePermeability();
 network.calculateConductance();
-Sw = network.calculateSaturations();
+network.calculateSaturations();

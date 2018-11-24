@@ -221,7 +221,7 @@ classdef Network < handle & Fluids
                 end
                     
             end
-            waterVolume
+            waterVolume;
             Sw_drain = waterVolume / obj.poreVolume;
             
         end
