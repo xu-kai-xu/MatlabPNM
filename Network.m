@@ -15,6 +15,7 @@ classdef Network < handle & Fluids
         totalFlowRate
         absolutePermeability
         poreVolume
+        Sw_drain
     end
     
     methods
@@ -110,7 +111,7 @@ classdef Network < handle & Fluids
             end                    
         end
         %% Saturation Calculation
-        function Sw_drain = calculateSaturations(obj)
+        function calculateSaturations(obj)
             % Water Saturation Calculation
             waterVolume = 0;                     
             for ii = 1:obj.numberOfLinks                
@@ -136,8 +137,7 @@ classdef Network < handle & Fluids
                 end
                     
             end
-            waterVolume
-            Sw_drain = waterVolume / obj.poreVolume;
+            obj.Sw_drain = waterVolume / obj.poreVolume;
             
         end
         %% Pressure distribution calculation        
