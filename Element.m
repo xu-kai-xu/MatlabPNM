@@ -23,8 +23,8 @@ classdef Element
         waterCrossSectionArea
         oilCrossSectionArea
         gasCrossSectionArea 
-        oil_area
-        water_area
+        oilArea
+        waterArea
         
         %It's better to define the phase conductances and the area of each
         %fluid as a structure for this each element
@@ -68,65 +68,64 @@ classdef Element
              end
          end
         
-%          %% Conductance Calculation
-%          function calculateWaterConductance(obj)           
-%                 curvatureRadius = obj.sig_ow / obj.thresholdPressure;
-%                 b = zeros(1,4); % Meniscus-Apex distance
-%                 if strcmp(obj.geometry , 'Circle')== 1
-%                     obj.waterArea = 0;
-%                     obj.conductance = 0;
-%                 else
-%                     dimenlessAreaCorner = zeros(1,4);
-%                     cornerShapeFactor = zeros(1,4);
-%                     scaledDimenlessConducCorner = zeros(1,4);
-%                     dimenlessConducCorner = zeros(1,4);
-%                     halfAngles = [obj.halfAngle1, obj.halfAngle2,obj.halfAngle3, obj.halfAngle4];
-%                     for jj = 1:4
-%                         if ~isnan(halfAngles(jj))
-%                             b(jj) = (curvatureRadius * cos(obj.receedingContactAngle +...
-%                                 halfAngles(jj)) / sin(halfAngles(jj)));
-%                             
-%                             if (halfAngles(jj) + obj.receedingContactAngle) == pi/2
-%                                 dimenlessAreaCorner(jj) = sin(halfAngles(jj))*cos(halfAngles(jj));
-%                                 cornerShapeFactor(jj) = dimenlessAreaCorner(jj) /...
-%                                     (4 * (1 + sin(halfAngles(jj)))^2);
-%                             else
-%                                 dimenlessAreaCorner(jj) = (sin(halfAngles(jj)) /...
-%                                     cos(obj.receedingContactAngle + halfAngles(jj)))^2 *...
-%                                     ((cos(obj.receedingContactAngle)*...
-%                                     cos(obj.receedingContactAngle + halfAngles(jj)) /...
-%                                     sin(halfAngles(jj)))+ obj.receedingContactAngle +...
-%                                     halfAngles(jj) - pi/2);
-%                                 cornerShapeFactor(jj) = dimenlessAreaCorner(jj) /...
-%                                     (4 * (1 - (sin(halfAngles(jj)) / cos(halfAngles(jj)+...
-%                                     obj.receedingContactAngle))*...
-%                                     (obj.receedingContactAngle + halfAngles(jj) - pi/2))^2);
-%                             end
-%                             
-%                             scaledDimenlessConducCorner(jj) = -15.1794 * cornerShapeFactor(jj)^2 +...
-%                                 7.6307 * cornerShapeFactor(jj) - 0.53488;
-%                             
-%                             dimenlessConducCorner(jj) = exp((scaledDimenlessConducCorner(jj) +...
-%                                 0.02 * sin(halfAngles(jj) - pi/6)) / (1/4/pi - cornerShapeFactor(jj))^(7/8)...
-%                                 / cos(halfAngles(jj) - pi/6)^0.5) * dimenlessAreaCorner(jj)^2;
-%                         end
-%                     end
-%                     obj.waterCrossSectionArea = sum(b.^2 .* dimenlessAreaCorner);
-%                     obj.waterConductance = sum(2 * b.^4 .* dimenlessConducCorner / obj.waterViscosity);
-%                 end
-%          end
-    
-        function obj = cal_oil_conductance (obj, oil_viscosity)            
-            obj.oil_area = obj.area - obj.water_area;
-            if strcmp(obj.geometry , 'Circle')== 1
-               obj.oil_conductance = (obj.oil_area / obj.area)*0.5 * obj.area^2 * obj.shapeFactor /oil_viscosity;
-            elseif strcmp(obj.geometry , 'Triangle')== 1
-               obj.oil_conductance = (obj.oil_area) *3*obj.radius^2/20/oil_viscosity;
-            elseif strcmp(obj.geometry , 'Square')== 1
-               obj.oil_conductance = (obj.oil_area / obj.area)*0.5623 * obj.area^2 * obj.shapeFactor /oil_viscosity;
-            end
-        end 
-
+         %% Conductance Calculation
+         function [waterArea, waterConductance] = calculateWaterConductance(obj, network)           
+                curvatureRadius = network.sig_ow / obj.thresholdPressure;
+                b = zeros(1,4); % Meniscus-Apex distance
+                if strcmp(obj.geometry , 'Circle')== 1
+                    waterArea = 0;
+                    waterConductance = 0;
+                else
+                    dimenlessAreaCorner = zeros(1,4);
+                    cornerShapeFactor = zeros(1,4);
+                    scaledDimenlessConducCorner = zeros(1,4);
+                    dimenlessConducCorner = zeros(1,4);
+                    halfAngles = [obj.halfAngle1, obj.halfAngle2,obj.halfAngle3, obj.halfAngle4];
+                    for jj = 1:4
+                        if ~isnan(halfAngles(jj))
+                            b(jj) = (curvatureRadius * cos(obj.receedingContactAngle +...
+                                halfAngles(jj)) / sin(halfAngles(jj)));
+                            
+                            if (halfAngles(jj) + obj.receedingContactAngle) == pi/2
+                                dimenlessAreaCorner(jj) = sin(halfAngles(jj))*cos(halfAngles(jj));
+                                cornerShapeFactor(jj) = dimenlessAreaCorner(jj) /...
+                                    (4 * (1 + sin(halfAngles(jj)))^2);
+                            else
+                                dimenlessAreaCorner(jj) = (sin(halfAngles(jj)) /...
+                                    cos(obj.receedingContactAngle + halfAngles(jj)))^2 *...
+                                    ((cos(obj.receedingContactAngle)*...
+                                    cos(obj.receedingContactAngle + halfAngles(jj)) /...
+                                    sin(halfAngles(jj)))+ obj.receedingContactAngle +...
+                                    halfAngles(jj) - pi/2);
+                                cornerShapeFactor(jj) = dimenlessAreaCorner(jj) /...
+                                    (4 * (1 - (sin(halfAngles(jj)) / cos(halfAngles(jj)+...
+                                    obj.receedingContactAngle))*...
+                                    (obj.receedingContactAngle + halfAngles(jj) - pi/2))^2);
+                            end
+                            
+                            scaledDimenlessConducCorner(jj) = -15.1794 * cornerShapeFactor(jj)^2 +...
+                                7.6307 * cornerShapeFactor(jj) - 0.53488;
+                            
+                            dimenlessConducCorner(jj) = exp((scaledDimenlessConducCorner(jj) +...
+                                0.02 * sin(halfAngles(jj) - pi/6)) / (1/4/pi - cornerShapeFactor(jj))^(7/8)...
+                                / cos(halfAngles(jj) - pi/6)^0.5) * dimenlessAreaCorner(jj)^2;
+                        end
+                    end
+                    waterArea = sum(b.^2 .* dimenlessAreaCorner)
+                    waterConductance = sum(2 * b.^4 .* dimenlessConducCorner / network.waterViscosity);
+                end
+         end
+         function [oilArea, oilConductance] = calculateOilConductance(obj, network)    
+             oilArea = obj.area - obj.waterArea;
+             if strcmp(obj.geometry , 'Circle')== 1
+                 oilConductance = (oilArea / obj.area)*0.5 * obj.area^2 * obj.shapeFactor /network.oilViscosity;
+             elseif strcmp(obj.geometry , 'Triangle')== 1
+                 oilConductance = (oilArea) *3*obj.area^2* obj.shapeFactor/network.oilViscosity/5;
+             elseif strcmp(obj.geometry , 'Square')== 1
+                 oilConductance = (oilArea / obj.area)*0.5623 * obj.area^2 * obj.shapeFactor /network.oilViscosity;
+             end              
+         end
     end
+
 end
 

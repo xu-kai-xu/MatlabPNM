@@ -80,8 +80,8 @@ classdef Node < Element
                 obj.halfAngle4 = nan;
                 obj.area = pi*obj.radius^2;                
                 obj.conductance = 0.5 * obj.area^2 * obj.shapeFactor /water_viscosity;
-            end            
-            obj.thresholdPressure = obj.calculateThresholdPressurePistonLike(sig_ow);
+            end   
+             obj.thresholdPressure = obj.calculateThresholdPressurePistonLike(sig_ow);
         end
         
     end
