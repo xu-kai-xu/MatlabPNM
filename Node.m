@@ -73,7 +73,7 @@ classdef Node < Element
                 obj.area = 4*obj.radius^2;                
                 obj.conductance = 0.5623 * obj.area^2 * obj.shapeFactor /water_viscosity;
             elseif obj.shapeFactor > 1 / 16
-                obj.geometry = 'circle';
+                obj.geometry = 'Circle';
                 obj.halfAngle1 = nan;
                 obj.halfAngle2 = nan;
                 obj.halfAngle3 = nan;

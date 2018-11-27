@@ -15,6 +15,7 @@ classdef Network < handle & Fluids
         totalFlowRate
         absolutePermeability
         poreVolume
+        Sw_drain
     end
     
     methods
@@ -93,53 +94,7 @@ classdef Network < handle & Fluids
             end
             obj.Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);  
             obj.poreVolume = linksVolume + nodesVolume;
-        end
-        %% Conductance Calculation
-         function calculateConductance(obj)           
-            for ii = 1:obj.numberOfNodes                
-            [obj.Nodes{ii}.waterCrossSectionArea, obj.Nodes{ii}.waterConductance] =...
-                obj.Nodes{ii}.calculateWaterConductance(obj); 
-             [obj.Nodes{ii}.oilCrossSectionArea, obj.Nodes{ii}.oilConductance] = ...
-                 obj.Nodes{ii}.calculateOilConductance(obj); 
-            end
-            for ii = 1:obj.numberOfLinks                
-             [obj.Links{ii}.waterCrossSectionArea, obj.Links{ii}.waterConductance] =...
-                 obj.Links{ii}.calculateWaterConductance(obj); 
-             [obj.Links{ii}.oilCrossSectionArea, obj.Links{ii}.oilConductance] = ...
-                 obj.Links{ii}.calculateOilConductance(obj);            
-            end                    
-        end
-        %% Saturation Calculation
-        function Sw_drain = calculateSaturations(obj)
-            % Water Saturation Calculation
-            waterVolume = 0;                     
-            for ii = 1:obj.numberOfLinks                
-                node1Index = obj.Links{ii}.pore1Index;
-                node2Index = obj.Links{ii}.pore2Index;
-                 % if the link is connected to inlet (index of node 1 is -1 which does not exist) 
-                if obj.Links{ii}.isInlet
-                waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...                   
-                    obj.Nodes{node2Index}.waterArea* obj.Links{ii}.pore2Length;
-%                 totalPV = totalPV+ obj.Links{ii}.volume + obj.Nodes{node2Index}.volume;
-                 % if the link is connected to outlet (index of node 2 is 0 which does not exist)
-                elseif obj.Links{ii}.isOutlet
-                 %if the link is neither inlet nor outlet  
-                 waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...
-                     obj.Nodes{node1Index}.waterArea* obj.Links{ii}.pore1Length;
-%                  totalPV = totalPV + obj.Links{ii}.volume + obj.Nodes{node1Index}.volume;
-                else
-                    waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...
-                        obj.Nodes{node1Index}.waterArea* obj.Links{ii}.pore1Length + ...
-                        obj.Nodes{node2Index}.waterArea* obj.Links{ii}.pore2Length;
-%                     totalPV =  totalPV+ obj.Links{ii}.volume + ...
-%                         obj.Nodes{node1Index}.volume + obj.Nodes{node2Index}.volume;
-                end
-                    
-            end
-            waterVolume
-            Sw_drain = waterVolume / obj.poreVolume;
-            
-        end
+        end       
         %% Pressure distribution calculation        
         function pressureDistribution (obj, inletPressure, outletPressure)
             % pressureDistribution Summary of this method goes here
@@ -210,6 +165,47 @@ classdef Network < handle & Fluids
                         obj.Nodes{obj.Links{ii}.pore2Index}.waterPressure) / 2;
                 end
             end
+        end
+         %% Conductance Calculation
+         function calculateConductance(obj)           
+            for ii = 1:obj.numberOfNodes                
+            [obj.Nodes{ii}.waterCrossSectionArea, obj.Nodes{ii}.waterConductance] =...
+                obj.Nodes{ii}.calculateWaterConductance(obj); 
+             [obj.Nodes{ii}.oilCrossSectionArea, obj.Nodes{ii}.oilConductance] = ...
+                 obj.Nodes{ii}.calculateOilConductance(obj); 
+            end
+            for ii = 1:obj.numberOfLinks                
+             [obj.Links{ii}.waterCrossSectionArea, obj.Links{ii}.waterConductance] =...
+                 obj.Links{ii}.calculateWaterConductance(obj); 
+             [obj.Links{ii}.oilCrossSectionArea, obj.Links{ii}.oilConductance] = ...
+                 obj.Links{ii}.calculateOilConductance(obj);            
+            end                    
+        end
+        %% Saturation Calculation
+        function Sw_drain = calculateSaturations(obj)
+            % Water Saturation Calculation
+            waterVolume = 0;                     
+            for ii = 1:obj.numberOfLinks                
+                node1Index = obj.Links{ii}.pore1Index;
+                node2Index = obj.Links{ii}.pore2Index;
+                 % if the link is connected to inlet (index of node 1 is -1 which does not exist) 
+                if obj.Links{ii}.isInlet
+                waterVolume = waterVolume+ obj.Links{ii}.waterCrossSectionArea * obj.Links{ii}.linkLength + ...                   
+                    obj.Nodes{node2Index}.waterCrossSectionArea* obj.Links{ii}.pore2Length;
+                 % if the link is connected to outlet (index of node 2 is 0 which does not exist)
+                elseif obj.Links{ii}.isOutlet
+                 %if the link is neither inlet nor outlet  
+                 waterVolume = waterVolume+ obj.Links{ii}.waterCrossSectionArea * obj.Links{ii}.linkLength + ...
+                     obj.Nodes{node1Index}.waterCrossSectionArea* obj.Links{ii}.pore1Length;
+                else
+                    waterVolume = waterVolume+ obj.Links{ii}.waterCrossSectionArea * obj.Links{ii}.linkLength + ...
+                        obj.Nodes{node1Index}.waterCrossSectionArea* obj.Links{ii}.pore1Length + ...
+                        obj.Nodes{node2Index}.waterCrossSectionArea* obj.Links{ii}.pore2Length;
+                end
+                    
+            end
+            obj.Sw_drain = waterVolume / obj.poreVolume;
+            
         end
         %% This function calculates the flow rate for each phase in the netwrok
         function calculateFlowRate(obj)
