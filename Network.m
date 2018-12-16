@@ -14,23 +14,10 @@ classdef Network < handle & Fluids
         Porosity
         totalFlowRate
         absolutePermeability
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        poreVolume
-||||||| merged common ancestors
-=======
         poreVolume
         Sw_drain
->>>>>>> 61a63595e6d7105ef83e8af42fce616fbb52602f
-||||||| ad1e304... Change conductance formula
-        poreVolume
-=======
->>>>>>> parent of ad1e304... Change conductance formula
-||||||| ad1e304... Change conductance formula
-        poreVolume
-=======
->>>>>>> parent of ad1e304... Change conductance formula
+        Pc_drain_curve
+        
     end
     
     methods
@@ -51,7 +38,7 @@ classdef Network < handle & Fluids
             temp = str2num(fgetl(node_1_fileID));
             obj.numberOfNodes = temp(1);
             
-            % Network dimention
+            % Network dimension
             obj.xDimension = temp(2);
             obj.yDimension = temp(3);
             obj.zDimension = temp(4);
@@ -102,217 +89,14 @@ classdef Network < handle & Fluids
             nodesVolume = 0;
             linksVolume = 0;
             for ii = 1:obj.numberOfNodes
-                nodesVolume = nodesVolume + (obj.Nodes{ii}.volume) ;
+                nodesVolume = nodesVolume + (obj.Nodes{ii}.volume);
             end
             for ii = 1:obj.numberOfLinks
-                linksVolume = linksVolume + (obj.Links{ii}.volume) ;
+                linksVolume = linksVolume + (obj.Links{ii}.volume); 
             end
-            obj.Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);            
-        end
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-        %% Conductance Calculation
-         function calculateConductance(obj)           
-            for ii = 1:obj.numberOfNodes                
-            [obj.Nodes{ii}.waterCrossSectionArea, obj.Nodes{ii}.waterConductance] =...
-                obj.Nodes{ii}.calculateWaterConductance(obj); 
-             [obj.Nodes{ii}.oilCrossSectionArea, obj.Nodes{ii}.oilConductance] = ...
-                 obj.Nodes{ii}.calculateOilConductance(obj); 
-            end
-            for ii = 1:obj.numberOfLinks                
-             [obj.Links{ii}.waterCrossSectionArea, obj.Links{ii}.waterConductance] =...
-                 obj.Links{ii}.calculateWaterConductance(obj); 
-             [obj.Links{ii}.oilCrossSectionArea, obj.Links{ii}.oilConductance] = ...
-                 obj.Links{ii}.calculateOilConductance(obj);            
-            end                    
-        end
-        %% Saturation Calculation
-        function Sw_drain = calculateSaturations(obj)
-            % Water Saturation Calculation
-            waterVolume = 0;                     
-            for ii = 1:obj.numberOfLinks                
-                node1Index = obj.Links{ii}.pore1Index;
-                node2Index = obj.Links{ii}.pore2Index;
-                 % if the link is connected to inlet (index of node 1 is -1 which does not exist) 
-                if obj.Links{ii}.isInlet
-                waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...                   
-                    obj.Nodes{node2Index}.waterArea* obj.Links{ii}.pore2Length;
-%                 totalPV = totalPV+ obj.Links{ii}.volume + obj.Nodes{node2Index}.volume;
-                 % if the link is connected to outlet (index of node 2 is 0 which does not exist)
-                elseif obj.Links{ii}.isOutlet
-                 %if the link is neither inlet nor outlet  
-                 waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...
-                     obj.Nodes{node1Index}.waterArea* obj.Links{ii}.pore1Length;
-%                  totalPV = totalPV + obj.Links{ii}.volume + obj.Nodes{node1Index}.volume;
-                else
-                    waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...
-                        obj.Nodes{node1Index}.waterArea* obj.Links{ii}.pore1Length + ...
-                        obj.Nodes{node2Index}.waterArea* obj.Links{ii}.pore2Length;
-%                     totalPV =  totalPV+ obj.Links{ii}.volume + ...
-%                         obj.Nodes{node1Index}.volume + obj.Nodes{node2Index}.volume;
-                end
-                    
-            end
-            waterVolume
-            Sw_drain = waterVolume / obj.poreVolume;
-            
-||||||| merged common ancestors
-        %% Saturation Calculation 
-        function obj = calculateSaturations(obj)
-        
-        
-=======
-        %% Conductance Calculation
-         function calculateConductance(obj)           
-            for ii = 1:obj.numberOfNodes                
-             [obj.Nodes{ii}.waterArea, obj.Nodes{ii}.waterConductance] =...
-                 obj.Nodes{ii}.calculateWaterConductance(obj); 
-             [obj.Nodes{ii}.oilArea, obj.Nodes{ii}.oilConductance] = ...
-                 obj.Nodes{ii}.calculateOilConductance(obj); 
-            end
-            for ii = 1:obj.numberOfLinks                
-             [obj.Links{ii}.waterArea, obj.Links{ii}.waterConductance] = ...
-                 obj.Links{ii}.calculateWaterConductance(obj); 
-%              [obj.Links{ii}.oilArea, obj.Links{ii}.oilConductance] = ...
-%                  obj.Links{ii}.calculateOilConductance(obj);
-            end                    
-        end
-        %% Saturation Calculation
-        function calculateSaturations(obj)
-            % Water Saturation Calculation
-            waterVolume = 0;                     
-            for ii = 1:obj.numberOfLinks                
-                node1Index = obj.Links{ii}.pore1Index;
-                node2Index = obj.Links{ii}.pore2Index;
-                 % if the link is connected to inlet (index of node 1 is -1 which does not exist) 
-                if obj.Links{ii}.isInlet
-                waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...                   
-                    obj.Nodes{node2Index}.waterArea* obj.Links{ii}.pore2Length;
-%                 totalPV = totalPV+ obj.Links{ii}.volume + obj.Nodes{node2Index}.volume;
-                 % if the link is connected to outlet (index of node 2 is 0 which does not exist)
-                elseif obj.Links{ii}.isOutlet
-                 %if the link is neither inlet nor outlet  
-                 waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...
-                     obj.Nodes{node1Index}.waterArea* obj.Links{ii}.pore1Length;
-%                  totalPV = totalPV + obj.Links{ii}.volume + obj.Nodes{node1Index}.volume;
-                else
-                    waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...
-                        obj.Nodes{node1Index}.waterArea* obj.Links{ii}.pore1Length + ...
-                        obj.Nodes{node2Index}.waterArea* obj.Links{ii}.pore2Length;
-%                     totalPV =  totalPV+ obj.Links{ii}.volume + ...
-%                         obj.Nodes{node1Index}.volume + obj.Nodes{node2Index}.volume;
-                end
-                    
-            end
-            obj.Sw_drain = waterVolume / obj.poreVolume;
-            
->>>>>>> 61a63595e6d7105ef83e8af42fce616fbb52602f
-||||||| ad1e304... Change conductance formula
-        %% Conductance Calculation
-         function calculateConductance(obj)           
-            for ii = 1:obj.numberOfNodes                
-            [obj.Nodes{ii}.waterCrossSectionArea, obj.Nodes{ii}.waterConductance] =...
-                obj.Nodes{ii}.calculateWaterConductance(obj); 
-             [obj.Nodes{ii}.oilCrossSectionArea, obj.Nodes{ii}.oilConductance] = ...
-                 obj.Nodes{ii}.calculateOilConductance(obj); 
-            end
-            for ii = 1:obj.numberOfLinks                
-             [obj.Links{ii}.waterCrossSectionArea, obj.Links{ii}.waterConductance] =...
-                 obj.Links{ii}.calculateWaterConductance(obj); 
-             [obj.Links{ii}.oilCrossSectionArea, obj.Links{ii}.oilConductance] = ...
-                 obj.Links{ii}.calculateOilConductance(obj);            
-            end                    
-        end
-        %% Saturation Calculation
-        function Sw_drain = calculateSaturations(obj)
-            % Water Saturation Calculation
-            waterVolume = 0;                     
-            for ii = 1:obj.numberOfLinks                
-                node1Index = obj.Links{ii}.pore1Index;
-                node2Index = obj.Links{ii}.pore2Index;
-                 % if the link is connected to inlet (index of node 1 is -1 which does not exist) 
-                if obj.Links{ii}.isInlet
-                waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...                   
-                    obj.Nodes{node2Index}.waterArea* obj.Links{ii}.pore2Length;
-%                 totalPV = totalPV+ obj.Links{ii}.volume + obj.Nodes{node2Index}.volume;
-                 % if the link is connected to outlet (index of node 2 is 0 which does not exist)
-                elseif obj.Links{ii}.isOutlet
-                 %if the link is neither inlet nor outlet  
-                 waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...
-                     obj.Nodes{node1Index}.waterArea* obj.Links{ii}.pore1Length;
-%                  totalPV = totalPV + obj.Links{ii}.volume + obj.Nodes{node1Index}.volume;
-                else
-                    waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...
-                        obj.Nodes{node1Index}.waterArea* obj.Links{ii}.pore1Length + ...
-                        obj.Nodes{node2Index}.waterArea* obj.Links{ii}.pore2Length;
-%                     totalPV =  totalPV+ obj.Links{ii}.volume + ...
-%                         obj.Nodes{node1Index}.volume + obj.Nodes{node2Index}.volume;
-                end
-                    
-            end
-            waterVolume
-            Sw_drain = waterVolume / obj.poreVolume;
-            
-=======
-        %% Saturation Calculation 
-        function obj = calculateSaturations(obj)
-        
-        
->>>>>>> parent of ad1e304... Change conductance formula
-||||||| ad1e304... Change conductance formula
-        %% Conductance Calculation
-         function calculateConductance(obj)           
-            for ii = 1:obj.numberOfNodes                
-            [obj.Nodes{ii}.waterCrossSectionArea, obj.Nodes{ii}.waterConductance] =...
-                obj.Nodes{ii}.calculateWaterConductance(obj); 
-             [obj.Nodes{ii}.oilCrossSectionArea, obj.Nodes{ii}.oilConductance] = ...
-                 obj.Nodes{ii}.calculateOilConductance(obj); 
-            end
-            for ii = 1:obj.numberOfLinks                
-             [obj.Links{ii}.waterCrossSectionArea, obj.Links{ii}.waterConductance] =...
-                 obj.Links{ii}.calculateWaterConductance(obj); 
-             [obj.Links{ii}.oilCrossSectionArea, obj.Links{ii}.oilConductance] = ...
-                 obj.Links{ii}.calculateOilConductance(obj);            
-            end                    
-        end
-        %% Saturation Calculation
-        function Sw_drain = calculateSaturations(obj)
-            % Water Saturation Calculation
-            waterVolume = 0;                     
-            for ii = 1:obj.numberOfLinks                
-                node1Index = obj.Links{ii}.pore1Index;
-                node2Index = obj.Links{ii}.pore2Index;
-                 % if the link is connected to inlet (index of node 1 is -1 which does not exist) 
-                if obj.Links{ii}.isInlet
-                waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...                   
-                    obj.Nodes{node2Index}.waterArea* obj.Links{ii}.pore2Length;
-%                 totalPV = totalPV+ obj.Links{ii}.volume + obj.Nodes{node2Index}.volume;
-                 % if the link is connected to outlet (index of node 2 is 0 which does not exist)
-                elseif obj.Links{ii}.isOutlet
-                 %if the link is neither inlet nor outlet  
-                 waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...
-                     obj.Nodes{node1Index}.waterArea* obj.Links{ii}.pore1Length;
-%                  totalPV = totalPV + obj.Links{ii}.volume + obj.Nodes{node1Index}.volume;
-                else
-                    waterVolume = waterVolume+ obj.Links{ii}.waterArea * obj.Links{ii}.linkLength + ...
-                        obj.Nodes{node1Index}.waterArea* obj.Links{ii}.pore1Length + ...
-                        obj.Nodes{node2Index}.waterArea* obj.Links{ii}.pore2Length;
-%                     totalPV =  totalPV+ obj.Links{ii}.volume + ...
-%                         obj.Nodes{node1Index}.volume + obj.Nodes{node2Index}.volume;
-                end
-                    
-            end
-            waterVolume
-            Sw_drain = waterVolume / obj.poreVolume;
-            
-=======
-        %% Saturation Calculation 
-        function obj = calculateSaturations(obj)
-        
-        
->>>>>>> parent of ad1e304... Change conductance formula
-        end
+            obj.Porosity = (linksVolume + nodesVolume) / (obj.xDimension * obj.yDimension * obj.zDimension);  
+            obj.poreVolume = linksVolume + nodesVolume;
+        end       
         %% Pressure distribution calculation        
         function pressureDistribution (obj, inletPressure, outletPressure)
             % pressureDistribution Summary of this method goes here
@@ -361,11 +145,11 @@ classdef Network < handle & Fluids
             
             % using Preconditioned conjugate gradients method to solve the
             % pressure distribution 
-            nodesPressure = pcg(Factor,B,1e-6,300);
+            nodesPressure = pcg(Factor,B,1e-3,300);
             
             %assign the pressure values to each node
             for ii = 1:obj.numberOfNodes
-                obj.Nodes{ii}.waterPressure = nodesPressure(ii);
+                obj.Nodes{ii}.waterPressure = nodesPressure(ii);      
             end
             
             %assign pressure values to links, since the surface whci
@@ -383,6 +167,59 @@ classdef Network < handle & Fluids
                         obj.Nodes{obj.Links{ii}.pore2Index}.waterPressure) / 2;
                 end
             end
+        end
+        
+        %% Conductance Calculation
+         function calculateConductance(obj, Pc)           
+            for i = 1:obj.numberOfNodes
+                if obj.Nodes{i}.occupancy == 1 %Node was occupied by oil
+                    [obj.Nodes{i}.waterCrossSectionArea, obj.Nodes{i}.waterConductance] =...
+                        obj.Nodes{i}.calculateWaterConductance(obj, Pc); 
+                    [obj.Nodes{i}.oilCrossSectionArea, obj.Nodes{i}.oilConductance] = ...
+                        obj.Nodes{i}.calculateOilConductance(obj);    
+                else
+                    obj.Nodes{i}.waterCrossSectionArea = obj.Nodes{i}.area;
+                    obj.Nodes{i}.waterConductance = obj.Nodes{i}.conductance; 
+                    obj.Nodes{i}.oilCrossSectionArea = 0;
+                    obj.Nodes{i}.oilConductance = 0;  
+                end
+            end
+            for i = 1:obj.numberOfLinks
+                if obj.Links{i}.occupancy == 1 %Link was occupied by oil
+                    [obj.Links{i}.waterCrossSectionArea, obj.Links{i}.waterConductance] =...
+                        obj.Links{i}.calculateWaterConductance(obj, Pc); 
+                    [obj.Links{i}.oilCrossSectionArea, obj.Links{i}.oilConductance] = ...
+                        obj.Links{i}.calculateOilConductance(obj);  
+                else
+                    obj.Links{i}.waterCrossSectionArea = obj.Links{i}.area;
+                    obj.Links{i}.waterConductance = obj.Links{i}.conductance; 
+                    obj.Links{i}.oilCrossSectionArea = 0;
+                    obj.Links{i}.oilConductance = 0;
+                end
+            end            
+        end
+        %% Saturation and Conductance Calculation
+        function Sw_drain = calculateSaturations(obj, Pc)
+            calculateConductance(obj, Pc);
+            % Water Saturation Calculation
+            waterVolume = 0;            
+            for i = 1:obj.numberOfNodes
+                if obj.Nodes{i}.occupancy == 1
+                     waterVolume = waterVolume + (obj.Nodes{i}.waterCrossSectionArea / obj.Nodes{i}.area) *...
+                         obj.Nodes{i}.volume + obj.Nodes{i}.clayVolume;
+                else
+                     waterVolume = waterVolume + obj.Nodes{i}.volume + obj.Nodes{i}.clayVolume;
+                end
+            end
+            for i = 1:obj.numberOfLinks
+                if obj.Links{i}.occupancy == 1
+                     waterVolume = waterVolume+ (obj.Links{i}.waterCrossSectionArea / obj.Links{i}.area) * ...
+                         obj.Links{i}.volume + obj.Links{i}.clayVolume;
+                else
+                     waterVolume = waterVolume + obj.Links{i}.volume + obj.Links{i}.clayVolume;
+                end  
+            end  
+            Sw_drain = waterVolume / obj.poreVolume;            
         end
         %% This function calculates the flow rate for each phase in the netwrok
         function calculateFlowRate(obj)
@@ -405,7 +242,7 @@ classdef Network < handle & Fluids
                     if obj.Nodes{node1Index}.x_coordinate < surfaceLocation && ...
                             obj.Nodes{node2Index}.x_coordinate > surfaceLocation   
                         
-                        %calculate the conductivity of the linNode system
+                        %calculate the conductivity of the linkNode system
                         nodeLinkSystemConductance = ((obj.Links{ii}.linkLength /...
                             obj.Links{ii}.conductance) +...
                             0.5 *...
@@ -421,10 +258,10 @@ classdef Network < handle & Fluids
                     end
                 end 
             end
-            obj.totalFlowRate = flowRate;
+            obj.totalFlowRate = flowRate;           
         end
-        %% Calculate the 
-        function AbsolutePermeabilityCalculation(obj)
+        %% Calculate AbsolutePermeability 
+        function calculateAbsolutePermeability(obj)
             %AbsolutePermeability calculates the absolute permeability of
             %the network
             %   Detailed explanation goes here
@@ -435,8 +272,140 @@ classdef Network < handle & Fluids
             % for pressure difference in the formula the corresponding
             % pressure drop between the vertical surfaces should be
             % calculated (based on Piri B1 formula)
-            obj.absolutePermeability = unitConvertor * 0.001 * obj.totalFlowRate * obj.xDimension / (obj.yDimension* obj.zDimension); %/ ()
-        end     
+            obj.absolutePermeability = unitConvertor * obj.totalFlowRate * obj.xDimension / (obj.yDimension* obj.zDimension); %/ ()
+        end
+        
+        %% Primary Drainage  
+        function obj = PrimaryDrainage(obj)
+            % Network is initialy water saturated
+            for i = 1:obj.numberOfNodes
+                obj.Nodes{i}.occupancy = 0;
+            end
+            for i = 1:obj.numberOfLinks
+                obj.Links{i}.occupancy = 0;
+            end
+            
+             %% determining the capillary pressure level interval
+             Pc_threshold = zeros(obj.numberOfNodes + obj.numberOfLinks,1);
+             for i = 1: obj.numberOfNodes                
+                 Pc_threshold(i) = obj.Nodes{i}.thresholdPressure;
+             end
+             for i = obj.numberOfNodes+1 :obj.numberOfLinks                
+                 Pc_threshold(i) = obj.Links{i}.thresholdPressure;
+             end
+             % Pc_interval
+             max_Pc = max(Pc_threshold);
+             min_Pc = min(Pc_threshold);
+             Pc_interval = (max_Pc - min_Pc)/50;
+             Pc_drain_max = max_Pc;
+             simTimes = Pc_drain_max / Pc_interval;
+             fprintf('\nPc_interval is: %f \n', Pc_interval);
+             fprintf('Pc_drain_max is: %f \n', Pc_drain_max);
+             fprintf('simTimes is: %f \n', simTimes);                
+             
+             %%     
+             % The first row of fill is node/link index, followed by 1 for Nodes and 0 for Links.          
+             fill = zeros(obj.numberOfNodes + obj.numberOfLinks,2); % A list for sequense of Node or Link fillings            
+             
+               %% Filling inletNodes by oil
+                 a = 0;
+                 Pc = 0;
+                 index = 0;                 
+                 threshold = zeros(obj.numberOfLinks,1);
+                 t = 1;
+                 obj.Sw_drain(t,1) = 1; 
+                 
+                 for i = 1:obj.numberOfNodes
+                     if obj.Nodes{i}.isInlet                          
+                         obj.Nodes{i}.occupancy = 1;
+                         a = a + 1;
+                         fill(a,1:2) = [obj.Nodes{i}.index, 1];                   
+                     end
+                 end                 
+                 
+                 while Pc < Pc_drain_max              
+                     for i = 1: obj.numberOfLinks
+                         threshold(i,1) = obj.Links{i}.thresholdPressure;
+                     end
+                     [Pc_th, ix] = sort(threshold, 1);
+                     potentialLinks = ix(Pc_th < Pc);
+                     potentialNodes = zeros(2*length(potentialLinks),1);
+%                      count = length(potentialLink);
+%                      while count > 0
+                     for i = 1:length(potentialLinks)   
+                         if obj.Links{potentialLinks(i)}.occupancy == 0
+                             node1Index = obj.Links{potentialLinks(i)}.pore1Index;
+                             node2Index = obj.Links{potentialLinks(i)}.pore2Index;
+                              % if the link is connected to inlet (index of node 1 is -1 which does not exist) 
+                             if obj.Links{potentialLinks(i)}.isInlet
+                                 if node1Index == -1 || node1Index == 0
+                                     index = node2Index;
+                                 elseif node2Index == -1 || node2Index == 0
+                                     index = node1Index;
+                                 end
+                                 obj.Links{potentialLinks(i)}.occupancy = 1;
+                                 a = a + 1;
+                                 fill(a,1:2) = [obj.Links{i}.index, 2];
+                                 potentialNodes(i) = obj.Links{potentialLinks(i)}.pore1Index;
+                                 potentialNodes(i+1) = obj.Links{potentialLinks(i)}.pore2Index;
+                                 if obj.Nodes{index}.occupancy == 0
+                                     obj.Nodes{index}.occupancy = 1;
+                                     a = a + 1;
+                                     fill(a,1:2) = [index, 1];                                                    
+                                 end
+                             % if the link is connected to outlet (index of node 2 is 0 which does not exist)
+                             elseif obj.Links{potentialLinks(i)}.isOutlet
+                                 if node1Index == -1 || node1Index == 0
+                                     index = node2Index;
+                                 elseif node2Index == -1 || node2Index == 0
+                                     index = node1Index;
+                                 end
+                                 if obj.Nodes{index}.occupancy == 1
+                                     obj.Links{potentialLinks(i)}.occupancy = 1;                                     
+                                     a = a + 1;
+                                     fill(a,1:2) = [index, 1];                   
+                                 end
+                                 %if the link is neither inlet nor outlet
+                             else 
+                                 if (obj.Nodes{node1Index}.occupancy == 1) ||...
+                                         (obj.Nodes{node2Index}.occupancy == 1)
+                                     obj.Links{potentialLinks(i)}.occupancy = 1;
+                                     a = a + 1;
+                                     fill(a,1:2) = [obj.Links{i}.index, 2];
+                                     if obj.Nodes{node1Index}.occupancy == 0
+                                         obj.Nodes{node1Index}.occupancy = 1;
+                                         a = a + 1;
+                                         fill(a,1:2) = [node1Index, 1];     
+                                     elseif obj.Nodes{node2Index}.occupancy == 0
+                                         obj.Nodes{node2Index}.occupancy = 1;
+                                         a = a + 1;
+                                         fill(a,1:2) = [node2Index, 1];                                         
+                                     end
+                                 end
+                             end
+                         end
+                     end
+                     
+                     %% Updating element saturations and conductances
+                     obj.Sw_drain(t,1) = calculateSaturations(obj, Pc);            
+                     
+                     %% Preparing Pc , Sw & Kr data                     
+                     obj.Pc_drain_curve(t,1) = Pc*0.000145037738;                     
+                     % Relative Permeability Calculation
+                     % [kr_oil(t,1),kr_water(t,1)] = k_rel(1,0);
+                     
+                     % Pc Step Calculation                     
+                     t = t + 1;                     
+                     Pc = Pc + Pc_interval;
+                 end
+                 
+                 plot(obj.Sw_drain,obj.Pc_drain_curve,'--r')
+                 title('Drainage Cappilary Pressure Curves')
+                 xlabel('Sw')
+                 xlim([0 1.05])
+                 ylabel('Pc (Pa)')
+                 legend('Drainage Pc')      
+        end
         %% vtk file generation
         function vtkOutput(obj)
             vtkFileID = fopen('output.vtk','w');

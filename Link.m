@@ -30,24 +30,18 @@ classdef Link < Element
             obj.index = index;
             %This condition is to set the nodes with index -1 in node1 and
             %nodes with 0 index in node2
-            if pore2Index == -1
+            if pore2Index == -1 || pore1Index == 0
                 obj.pore1Index = pore2Index; 
                 obj.pore2Index = pore1Index;
                 obj.pore1Length = pore2Length;
-                obj.pore2Length = pore1Length;    
-            elseif pore1Index == 0   
-                obj.pore1Index = pore2Index; 
-                obj.pore2Index = pore1Index;
-                obj.pore1Length = pore2Length;
-                obj.pore2Length = pore1Length;    
-                
+                obj.pore2Length = pore1Length;                  
             else            
                 obj.pore1Index = pore1Index; 
                 obj.pore2Index = pore2Index;
                 obj.pore1Length = pore1Length;
                 obj.pore2Length = pore2Length;
             end
-            
+                   
             obj.radius = radius;
             obj.shapeFactor = shapeFactor;
             obj.length = length;
@@ -55,6 +49,7 @@ classdef Link < Element
             obj.volume = volume;
             obj.clayVolume = clayVolume;
             water_viscosity = 0.001;
+            sig_ow = 20e-3; % N/m
             
             
             %Cheking inlet or outlet status of the link
@@ -78,7 +73,7 @@ classdef Link < Element
                 obj.halfAngle1 = -0.5 * obj.halfAngle2 + 0.5 * asin((tan(obj.halfAngle2) + 4 * obj.shapeFactor) * sin(obj.halfAngle2) / (tan(obj.halfAngle2) - 4 * obj.shapeFactor));
                 obj.halfAngle3 = pi / 2 - obj.halfAngle1 - obj.halfAngle2;
                 obj.halfAngle4 = nan;
-                obj.area = obj.radius^2/4*obj.shapeFactor;                
+                obj.area = obj.radius^2/4/obj.shapeFactor;                
                 obj.conductance = 3 * obj.area^2 * obj.shapeFactor /water_viscosity / 5;
             elseif obj.shapeFactor > sqrt(3) / 36 && obj.shapeFactor < 1 / 16
                 obj.geometry = 'Square';
@@ -89,7 +84,7 @@ classdef Link < Element
                 obj.area = 4*obj.radius^2;                
                 obj.conductance = 0.5623 * obj.area^2 * obj.shapeFactor /water_viscosity;
             elseif obj.shapeFactor >= 1 / 16
-                obj.geometry = 'circle';
+                obj.geometry = 'Circle';
                 obj.halfAngle1 = nan;
                 obj.halfAngle2 = nan;
                 obj.halfAngle3 = nan;
@@ -97,6 +92,7 @@ classdef Link < Element
                 obj.area = pi*obj.radius^2;                
                 obj.conductance = 0.5 * obj.area^2 * obj.shapeFactor /water_viscosity;
             end
+            obj.thresholdPressure = obj.calculateThresholdPressurePistonLike(sig_ow);
         end
         
     end
