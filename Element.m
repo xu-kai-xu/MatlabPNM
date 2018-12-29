@@ -40,7 +40,7 @@ classdef Element
         oilPressure
         gasPressure
         thresholdPressure
-        occupancy
+        occupancy;
         
      
     end

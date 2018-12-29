@@ -55,9 +55,9 @@ classdef Link < Element
             %Cheking inlet or outlet status of the link
             obj.isInlet  = false;
             obj.isOutlet = false;
-            if obj.pore1Index == -1 || obj.pore2Index == -1
+            if obj.pore1Index == -1 
                 obj.isInlet = true;
-            elseif obj.pore1Index == 0 || obj.pore2Index == 0
+            elseif obj.pore2Index == 0
                 obj.isOutlet = true;
             end
             
