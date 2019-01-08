@@ -295,8 +295,8 @@ classdef Network < handle & Fluids
              % Pc_interval
              max_Pc = max(Pc_threshold);
              min_Pc = min(Pc_threshold);
-             Pc_interval = (max_Pc - min_Pc)/40;
-             Pc_drain_max = max_Pc;
+             Pc_interval = (max_Pc - min_Pc)/200;
+             Pc_drain_max = 0.18*max_Pc;
              simTimes = Pc_drain_max / Pc_interval;
              fprintf('\nPc_interval is: %f \n', Pc_interval);
              fprintf('Pc_drain_max is: %f \n', Pc_drain_max);
@@ -305,20 +305,19 @@ classdef Network < handle & Fluids
              t = 1;
              obj.Sw_drain(t,1) = 1; 
              obj.Pc_drain_curve(t,1) = 0;
-             % Filling inletNodes by oil
-             for i = 1:obj.numberOfNodes
-                 if obj.Nodes{i}.isInlet                          
-                     obj.Nodes{i}.occupancy = 'B';                   
-                 end
-             end        
+%              % Filling inletNodes by oil
+%              for i = 1:obj.numberOfNodes
+%                  if obj.Nodes{i}.isInlet                          
+%                      obj.Nodes{i}.occupancy = 'B';                   
+%                  end
+%              end        
              while Pc < Pc_drain_max              
+%            while  obj.Sw_drain(t,1)>0.1 
+
              t = t + 1;    
-             % Pc Step Calculation 
-             if t < 0.3*simTimes
-                 Pc = Pc + 0.5*Pc_interval;  
-             else 
-                 Pc = Pc + Pc_interval;  
-             end
+%              Pc Step Calculation 
+             Pc = Pc + Pc_interval;
+             
              new = 0;             
              for i = 1:obj.numberOfLinks
                  node1Index = obj.Links{i}.pore1Index;
@@ -344,7 +343,7 @@ classdef Network < handle & Fluids
                  throat_list = ix;
                  index = 12545-new+1;
                  
-                 if obj.Links{throat_list(index)}.occupancy == 'A' && Pc_threshold_n(throat_list(index)) <= Pc
+                 if obj.Links{throat_list(index)}.occupancy == 'A' && obj.Links{throat_list(index)}.thresholdPressure <= Pc
                      obj.Links{throat_list(index)}.occupancy = 'B';
                      node1Index = obj.Links{throat_list(index)}.pore1Index;
                      node2Index = obj.Links{throat_list(index)}.pore2Index;
@@ -356,12 +355,9 @@ classdef Network < handle & Fluids
                              Pc_threshold_n(obj.Nodes{node_index}.connectedLinks)= Pc_threshold(obj.Nodes{node_index}.connectedLinks);                             
                              new = new + obj.Nodes{node_index}.connectionNumber;
                          end
-                         
-                         % if the link is connected to outlet (index of node 2 is 0 which does not exist)
-                     elseif obj.Links{throat_list(index)}.isOutlet
-                         
+                                                  
                          %if the link is neither inlet nor outlet
-                     else
+                     elseif ~obj.Links{throat_list(index)}.isInlet && ~obj.Links{throat_list(index)}.isOutlet
                          if obj.Nodes{node1Index}.occupancy == 'A'
                              obj.Nodes{node1Index}.occupancy = 'B';                                 
                              Pc_threshold_n(obj.Nodes{node1Index}.connectedLinks)= Pc_threshold(obj.Nodes{node1Index}.connectedLinks);                         
@@ -382,7 +378,8 @@ classdef Network < handle & Fluids
              obj.Sw_drain(t,1) = calculateSaturations(obj, Pc);            
              
              %% Preparing Pc , Sw & Kr data                     
-             obj.Pc_drain_curve(t,1) = Pc*0.000145037738;  
+%              obj.Pc_drain_curve(t,1) = Pc*0.145037738;  
+               obj.Pc_drain_curve(t,1) = Pc;  
              
              %% Relative Permeability Calculation
              % [kr_oil(t,1),kr_water(t,1)] = k_rel(1,0);            

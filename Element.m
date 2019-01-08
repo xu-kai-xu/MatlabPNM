@@ -33,7 +33,7 @@ classdef Element
         fluidConductances
         fluidCrossSectionAreas
 
-        receedingContactAngle = 0.3;
+        receedingContactAngle = 0;
         advandingContactAngle
         
         waterPressure
