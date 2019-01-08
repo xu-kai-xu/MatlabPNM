@@ -298,7 +298,7 @@ classdef Network < handle & Fluids
              % Pc_interval
              max_Pc = max(Pc_threshold);
              min_Pc = min(Pc_threshold);
-             Pc_interval = (max_Pc - min_Pc)/100;
+             Pc_interval = (max_Pc - min_Pc)/50;
              Pc_drain_max = 0.5*max_Pc;
 %              simTimes = Pc_drain_max / Pc_interval;
              fprintf('\nPc_interval is: %f \n', Pc_interval);
@@ -311,7 +311,7 @@ classdef Network < handle & Fluids
              %% Cycle of increasing Pressure
              while Pc < Pc_drain_max              
                  
-             %% Finding new inlet-Links with threshold pressure < Pc
+             %% Find new inlet-Links with threshold pressure < Pc
              new = 0;             
              for i = 1:obj.numberOfLinks                  
                   if obj.Links{i}.thresholdPressure <= Pc                    
@@ -369,9 +369,9 @@ classdef Network < handle & Fluids
                 
              % Pc Step Calculation 
              if  obj.Sw_drain(t,1) > 0.9 
-                 Pc = Pc + 0.*Pc_interval;
+                 Pc = Pc + 0.1*Pc_interval;
              else
-                 Pc = Pc + 2*Pc_interval;                 
+                 Pc = Pc + Pc_interval;                 
              end
              t = t + 1; 
              end             
